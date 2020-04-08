@@ -1,0 +1,131 @@
+# verb-Text.psm1
+
+  <#
+  .SYNOPSIS
+  verb-Text - Generic text-related functions
+  .NOTES
+  Version     : 1.0.0.0
+  Author      : Todd Kadrie
+  Website     :	https://www.toddomation.com
+  Twitter     :	@tostka
+  CreatedDate : 4/8/2020
+  FileName    : verb-Text.psm1
+  License     : MIT
+  Copyright   : (c) 4/8/2020 Todd Kadrie
+  Github      : https://github.com/tostka
+  REVISIONS
+  * 4/8/2020 - 1.0.0.0 modularized
+  # 11:15 AM 4/3/2020 initial version: added: Remove-StringDiacritic, Remove-StringLatinCharacters
+  .DESCRIPTION
+  verb-Text - Generic text-related functions
+  .LINK
+  https://github.com/tostka/verb-Text
+  #>
+
+
+$script:ModuleRoot = $PSScriptRoot ; 
+$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ; 
+
+
+
+#*------v Remove-StringDiacritic.ps1 v------
+function Remove-StringDiacritic {
+    <#
+    .SYNOPSIS
+    Remove-StringDiacritic() - This function will remove the diacritics (accents) characters from a string.unaccented characters.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Francois-Xavier Cat
+    Website     :	github.com/lazywinadmin, www.lazywinadmin.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2019-3-22
+    FileName    : Remove-StringDiacritic.ps1
+    License     : (none-specified)
+    Copyright   : (none-specified)
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text,String,ForeignLanguage,Language
+    REVISIONS
+    * Mar 22, 2019, init
+    .DESCRIPTION
+    Remove-StringDiacritic() - This function will remove the diacritics (accents) characters from a string.unaccented characters.
+    .PARAMETER String ;
+    Specifies the String(s) on which the diacritics need to be removed ;
+    .PARAMETER NormalizationForm ;
+    Specifies the normalization form to use ;
+    https://msdn.microsoft.com/en-us/library/system.text.normalizationform(v=vs.110).aspx
+    .EXAMPLE
+    PS C:\> Remove-StringDiacritic "L'été de Raphaël" ;
+    L'ete de Raphael ;
+    .LINK
+    https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
+    #>
+    [CMdletBinding()]
+    PARAM ([ValidateNotNullOrEmpty()][Alias('Text')]
+      [System.String[]]$String,
+      [System.Text.NormalizationForm]$NormalizationForm = "FormD"
+    ) ;
+    FOREACH ($StringValue in $String) {
+      Write-Verbose -Message "$StringValue"
+      try {
+          # Normalize the String
+          $Normalized = $StringValue.Normalize($NormalizationForm) ;
+          $NewString = New-Object -TypeName System.Text.StringBuilder
+          # Convert the String to CharArray
+          $normalized.ToCharArray() |
+          ForEach-Object -Process {
+              if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($psitem) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
+                  [void]$NewString.Append($psitem) ;
+              } ;
+          } ;
+          #Combine the new string chars
+          Write-Output $($NewString -as [string]) ;
+      } Catch {
+          Write-Error -Message $Error[0].Exception.Message
+      } ;
+    } ;
+}
+
+#*------^ Remove-StringDiacritic.ps1 ^------
+
+#*------v Remove-StringLatinCharacters.ps1 v------
+function Remove-StringLatinCharacters {
+<#
+    .SYNOPSIS
+    Remove-StringLatinCharacters() - Substitute Cyrillic characters into normal unaccented characters. Addon to Remove-Stringdiacriic, converts untouched Polish crossed-L to L. But doesn't proper change some german chars (rplcs german est-set with ? -> do Remove-StringDiacritic first, and it won't damage german).
+   .NOTES
+    Version     : 1.0.1
+    Author: Marcin Krzanowicz
+    Website:	https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html#
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2019-3-22
+    FileName    : Remove-StringDiacritic.ps1
+    License     : (none-specified)
+    Copyright   : (none-specified)
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text,String,ForeignLanguage,Language
+    REVISIONS
+    REVISIONS   :
+    * May 21, 2015 posted version
+    .DESCRIPTION
+    Remove-StringLatinCharacters() - Substitute Cyrillic characters into normal unaccented characters. Addon to Remove-Stringdiacriic, converts untouched Polish crossed-L to L. But doesn't proper change some german chars (rplcs german est-set with ? -> do Remove-StringDiacritic first, and it won't damage german).
+    .PARAMETER String ;
+    Specifies the String(s) on which the latin chars need to be removed ;
+    .EXAMPLE
+    Remove-StringLatinCharacters -string "string" ;
+    Substitute norma unaccented chars for cyrillic chars in the string specified
+    .LINK
+    https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
+    #>
+    [CMdletBinding()]
+    PARAM ([ValidateNotNullOrEmpty()][Alias('Text')]
+      [string]$String
+    ) ;
+    [Text.Encoding]::ASCII.GetString([Text.Encoding]::GetEncoding("Cyrillic").GetBytes($String)) ;
+}
+
+#*------^ Remove-StringLatinCharacters.ps1 ^------
+
+#*======^ END FUNCTIONS ^======
+
+Export-ModuleMember -Function Remove-StringDiacritic,Remove-StringLatinCharacters -Alias *
+
