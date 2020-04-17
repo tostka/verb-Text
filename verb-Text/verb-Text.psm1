@@ -1,10 +1,11 @@
-﻿# verb-Text.psm1
+﻿# verb-text.psm1
+
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.0.1.0
+  Version     : 1.0.2.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -23,10 +24,198 @@
   #>
 
 
-$script:ModuleRoot = $PSScriptRoot ; 
-$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ; 
+$script:ModuleRoot = $PSScriptRoot ;
+$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
+
+#*======v FUNCTIONS v======
 
 
+
+#*------v create-AcronymFromCaps.ps1 v------
+Function create-AcronymFromCaps {
+<#
+    .SYNOPSIS
+    create-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
+    .NOTES
+    Author: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    12:14 PM 2/16/2016 - working
+    8:58 AM 2/16/2016 - initial version
+    .DESCRIPTION
+    create-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
+    .PARAMETER  String
+    String to be convered to a 'Capital Acrynym'
+    .INPUTS
+    None
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    create-AcronymFromCaps "get-AdGroupMembersRecurseManual" ;
+    Create an Capital-letter Acroynm for the specified string
+    .EXAMPLE
+    $fn=".\$(create-AcronymFromCaps $scriptNameNoExt)-$(get-date -uformat '%Y%m%d-%H%M').csv" ;
+    Create a filename based off of an Acronym from the capital letters in the ScriptNameNoExt.
+    .LINK
+    *---^ END Comment-based Help  ^--- #>
+    Param(
+        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "String to be convered to a 'Capital Acrynym'[string]")][ValidateNotNullOrEmpty()]
+        [string]$String
+    ) # PARAM BLOCK END
+    $AcroCap = $String -split "" -cmatch '([A-Z])' -join ""  ;
+    write-output $AcroCap ;
+}
+
+#*------^ create-AcronymFromCaps.ps1 ^------
+
+#*------v get-StringHash.ps1 v------
+function get-StringHash {
+        <#
+        .SYNOPSIS
+        VERB-NOUN.ps1 - 1LINEDESC
+        .NOTES
+        Version     : 1.0.0
+        Author      : Todd Kadrie
+        Website     :	http://www.toddomation.com
+        Twitter     :	@tostka / http://twitter.com/tostka
+        CreatedDate : 2020-
+        FileName    : 
+        License     : MIT License
+        Copyright   : (c) 2020 Todd Kadrie
+        Github      : https://github.com/tostka
+        Tags        : Powershell
+        AddedCredit : Bryan Dady
+        AddedWebsite:	https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
+        REVISIONS
+        * 11:59 AM 4/17/2020 updated CBH, moved from incl-servercore to verb-text
+        * 9:46 PM 9/1/2019 updated, added Algorithm param, added pshelp
+        * 1/21/11 posted version
+        .DESCRIPTION
+        get-StringHash.ps1 - Convert specifed string to designated Cryptographic Hash string
+        hybrid of work by Ivovan & Bryan Dady
+        .PARAMETER  String
+        Specify string to be hashed. Accepts from pipeline
+        .PARAMETER  Algorithm
+        Hashing Algorithm (SHA1|SHA256|SHA384|SHA512|MACTripleDES|MD5|RIPEMD160) -Algorithm MD5
+        .EXAMPLE
+        $env:username | get-StringHash -Algorithm md5 ;
+        .LINK
+        https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
+        #>
+        param (
+            [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Specify string to be hashed. Accepts from pipeline.')]
+            [alias('text', 'InputObject')]
+            [ValidateNotNullOrEmpty()]
+            [string]$String,
+            [Parameter(Mandatory = $false, Position = 1, ValueFromPipeline = $false, ValueFromPipelineByPropertyName = $false, HelpMessage = "Hashing Algorithm (SHA1|SHA256|SHA384|SHA512|MACTripleDES|MD5|RIPEMD160) -Algorithm MD5")]
+            [alias('HashName')]
+            [ValidateSet('SHA1', 'SHA256', 'SHA384', 'SHA512', 'MACTripleDES', 'MD5', 'RIPEMD160')]
+            [string]$Algorithm = 'SHA256'
+        ) ;
+        $StringBuilder = New-Object -TypeName System.Text.StringBuilder ;
+        [System.Security.Cryptography.HashAlgorithm]::Create($Algorithm).ComputeHash([System.Text.Encoding]::UTF8.GetBytes($String)) | ForEach-Object -Process { [Void]$StringBuilder.Append($_.ToString('x2')) } ;
+        #'Optimize New-Object invocation, based on Don Jones' recommendation: https://technet.microsoft.com/en-us/magazine/hh750381.aspx
+        $Private:properties = @{
+            'Algorithm' = $Algorithm ;
+            'Hash'      = $StringBuilder.ToString()  ;
+            'String'    = $String ;
+        } ;
+        $Private:RetObject = New-Object -TypeName PSObject -Prop $properties | Sort-Object ;
+        return $RetObject  ;
+    }
+
+#*------^ get-StringHash.ps1 ^------
+
+#*------v IsNumeric.ps1 v------
+Function IsNumeric {
+    <#
+    .SYNOPSIS
+    IsNumeric.ps1 - Test a given value is numeric
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : IsNumeric.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS
+    * 8:27 PM 5/23/2014
+    .DESCRIPTION
+    IsNumeric.ps1 - Test a given value is numeric
+    .PARAMETER Value
+    Value to be evaluated
+    .EXAMPLE
+    $value="Win";IsNumeric($value);
+    Test whether the string 'Win' is numeric (returns False)
+    .EXAMPLE
+    $value="80";IsNumeric($value);
+    Test whether the string '80' is numeric (returns True)
+    .LINK
+    #>
+    param($value)
+    ($($value.Trim()) -match "^[-+]?([0-9]*\.[0-9]+|[0-9]+\.?)$") | write-output ; 
+}
+
+#*------^ IsNumeric.ps1 ^------
+
+#*------v Quote-List.ps1 v------
+Function Quote-List {
+    <#
+    .SYNOPSIS
+    Quote-List.ps1 - wrap list with quotes
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : Quote-List.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS
+    * 8:27 PM 5/23/2014
+    .DESCRIPTION
+    Quote-List.ps1 - wrap list with quotes
+    .LINK
+    #>
+    $args 
+}
+
+#*------^ Quote-List.ps1 ^------
+
+#*------v Quote-String.ps1 v------
+Function Quote-String {
+    <#
+    .SYNOPSIS
+    Quote-String.ps1 - Wrap argument with quotes
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : Quote-String.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS
+    * 8:27 PM 5/23/2014
+    .DESCRIPTION
+    Quote-String.ps1 - rap argument with quotes
+    .LINK
+    #>
+    "$args" 
+}
+
+#*------^ Quote-String.ps1 ^------
 
 #*------v Remove-StringDiacritic.ps1 v------
 function Remove-StringDiacritic {
@@ -34,7 +223,7 @@ function Remove-StringDiacritic {
     .SYNOPSIS
     Remove-StringDiacritic() - This function will remove the diacritics (accents) characters from a string.unaccented characters.
     .NOTES
-    Version     : 1.0.1
+    Version     : 1.0.0
     Author      : Francois-Xavier Cat
     Website     :	github.com/lazywinadmin, www.lazywinadmin.com
     Twitter     :	@tostka / http://twitter.com/tostka
@@ -93,7 +282,7 @@ function Remove-StringLatinCharacters {
     .SYNOPSIS
     Remove-StringLatinCharacters() - Substitute Cyrillic characters into normal unaccented characters. Addon to Remove-Stringdiacriic, converts untouched Polish crossed-L to L. But doesn't proper change some german chars (rplcs german est-set with ? -> do Remove-StringDiacritic first, and it won't damage german).
    .NOTES
-    Version     : 1.0.1
+    Version     : 1.0.2
     Author: Marcin Krzanowicz
     Website:	https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html#
     Twitter     :	@tostka / http://twitter.com/tostka
@@ -125,16 +314,222 @@ function Remove-StringLatinCharacters {
 
 #*------^ Remove-StringLatinCharacters.ps1 ^------
 
+#*------v unwrap-Text.ps1 v------
+Function Unwrap-Text {
+    <#
+    .SYNOPSIS
+    Unwrap-Text
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : Unwrap-Text
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS   :
+    * 8:41 AM 4/12/2015, make it drop into the pipeline instead of return
+    .DESCRIPTION
+    Unwrap-Text
+    .PARAMETER  sText
+    Text to be unwrapped
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    Outputs unwrapped text to pipeline
+    .EXAMPLE
+    get-fortune | unwrap-text | speak-words
+    Get a fortune, unwrap the text, and text-to-speech the words
+    .EXAMPLE
+    unwrap-text $x
+    .LINK
+     #>
+    PARAM(
+        [Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelinebyPropertyName = $True, HelpMessage = 'Text to be unwrapped')][string]$sText)
+    BEGIN { } 
+    PROCESS {
+        Foreach ($sTxt in $sText) {
+            $sTxt0 = $sTxt.replace("`r`n", " ");
+            if (($host.version) -eq "2.0") {
+                return $sTxtO;
+            }
+            else {
+                write-output $sTxt0 ;
+            } # if-block end
+        } 
+    }
+}
+
+#*------^ unwrap-Text.ps1 ^------
+
+#*------v unwrap-Textn.ps1 v------
+Function Unwrap-TextN {
+    <#
+    .SYNOPSIS
+    Unwrap-TextN - Unwrap text. This variant just replaces newlines `n, without the carriage return `r
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : Unwrap-Text
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS   :
+    * 8:41 AM 4/12/2015, make it drop into the pipeline instead of return
+    .DESCRIPTION
+    Unwrap-TextN - Unwrap text. This variant just replaces newlines `n, without the carriage return `r
+    .PARAMETER  sText
+    Text to be unwrapped
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    Outputs unwrapped text to pipeline
+    .EXAMPLE
+    get-fortune | unwrap-textn | speak-words
+    Get a fortune, unwrap the text, and text-to-speech the words
+    .EXAMPLE
+    unwrap-textn $x
+    .LINK
+     #>
+    PARAM(
+        [Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelinebyPropertyName = $True, HelpMessage = 'What text do you want to unwrap?')][string]$sText)
+    BEGIN { }
+    PROCESS {
+        Foreach ($sTxt in $sText) {
+            $sTxt0 = $sText.replace("`n", " ");
+            if (($host.version) -eq "2.0") {
+                return $sTxtO;
+            }
+            else {
+                write-output $sTxt0 ;
+            } 
+        } 
+    } 
+}
+
+#*------^ unwrap-Textn.ps1 ^------
+
+#*------v WordWrap-String.ps1 v------
+Function WordWrap-String {
+<#
+    .SYNOPSIS
+    WordWrap-String - Word wrap function, return word wrapped version of passed string
+    .NOTES
+    Author: wolfplusplus
+    Website:	http://blog.wolfplusplus.com/?p=260
+    REVISIONS   :
+    9:50 AM 5/1/2014 try to extend it to vari-leng or window
+    9:48 AM 5/1/2014
+    .DESCRIPTION
+    WordWrap-String - Word wrap function, return word wrapped version of passed string
+    .PARAMETER  Str
+    String to be wrapped
+    .PARAMETER  Wrap
+    Specify either the integer character number to perform a wrap at, or specify 'WINDOW', to default the wrap char count to the width of the current window.
+    .INPUTS
+    None
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    write-host (WordWrap-String $logline 80)
+    .LINK
+    http://blog.wolfplusplus.com/?p=260
+    #>
+    Param(
+        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "String to be wrapped[-str 'string']")][ValidateNotNullOrEmpty()]
+        [string]$Str,
+        [Parameter(Position = 1, Mandatory = $True, HelpMessage = "character number to wrap at, or 'WINDOW' to indicate wrap should be performed at width of current window[-Wrap 'WINDOW']")][ValidateNotNullOrEmpty()]
+        $Wrap
+    ) ;
+    if ($Wrap.ToUpper() -eq "WINDOW") {
+        $Wrap = (get-host).ui.rawui.windowsize.width
+    } elseif ($Wrap -is [string]) {
+        write-host -fore yell ("INVALID `$Wrap param: " + $Wrap + "`n Syntax: WordWrap-String [string] [#chars]")
+    }  
+    $sWrapped = ""
+    $curLn = ""
+    # $ split string at spaces, then Loop over the words and write a line out just short $spec'd size
+    foreach ($word in $str.Split(" ")) {
+        # see if adding a word makes string longer then window width
+        $checkLinePlusWord = $curLn + " " + $word
+        if ($checkLinePlusWord.length -gt $Wrap) {
+            # With the new word, over width `n before next word
+            $sWrapped += [Environment]::Newline
+            $curLn = ""
+        }
+        # Append word to current line and final str
+        $curLn += $word + " "
+        $sWrapped += $word + " "
+    } 
+    return $sWrapped
+}
+
+#*------^ WordWrap-String.ps1 ^------
+
+#*------v wrap-Text.ps1 v------
+Function wrap-Text {
+    <#
+    .SYNOPSIS
+    wrap-Text.ps1 - Wrap a string at specified number of characters
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-
+    FileName    : 
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS
+    * added CBH
+    .DESCRIPTION
+    wrap-Text.ps1 - Wrap a string at specified number of characters
+    .PARAMETER  sText
+    Specify string to be wrapped
+    .PARAMETER  nChars
+    Number of characters, at which to wrap the string
+    .EXAMPLE
+    $text=wrap-Text -sText "Please send issues to technisbetas@gmail.com, putting them in the reviews doesn't help me find fix them" -nChars 30 ;
+    .LINK
+    https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
+    #>
+    [CmdletBinding()]
+    param([string]$sText, [int]$nChars) 
+    $words = $sText.split(" ");
+    $sPad = "";
+    $sTextO = "";
+    foreach ($word in $words) {
+        if (($sPad + " " + $word).length -gt $nChars) {
+            $sTextO = $sTextO + $sPad + "`n"  ;
+            $sPad = $word ;
+        }
+        else {$sPad = $sPad + " " + $word  } ;
+    }  ;
+    if ($sPad.length -ne 0) {$sTextO = $sTextO + $sPad };
+    $sTextO | write-output ; 
+}
+
+#*------^ wrap-Text.ps1 ^------
+
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function Remove-StringDiacritic,Remove-StringLatinCharacters -Alias *
+Export-ModuleMember -Function create-AcronymFromCaps,get-StringHash,IsNumeric,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQULU9cc/UX8Kde17EBPRY1AY5B
-# tJ2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUw8Zv6nDKMA9YO85ntC+tv56/
+# Wl+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -149,9 +544,9 @@ Export-ModuleMember -Function Remove-StringDiacritic,Remove-StringLatinCharacter
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSzvrs+
-# ZjbeaDffJb9tgesuoKLokzANBgkqhkiG9w0BAQEFAASBgAqvUTrclvRt+9uCKyoI
-# cyM8HDE63oQqthJpxH5j+iw1sD/g4SrPNFYTZrWfkQLfHLDTu5ZHFW6WSXVS9E8S
-# Y5fUvRbRkDUHW9TOhfeE2iNTMjVZGlTJyxqPrvot7scXck/y7WR+6jT97/81xjkK
-# 7zHxa8Yg7PmoGoQdfZ5woUt/
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSvd939
+# +jzdMNhrjkv+0ODbsZlqZTANBgkqhkiG9w0BAQEFAASBgI/Ytj6gI5++PsnilXvw
+# LxffTVxy+ImFd1L0J5LO135H5pqMRDS00S5MVE0Tq+ar30EOZ3euZgk+Tt1uF5YZ
+# MbV4hoSJsxl2oXGZ/NxclR6AeihoU7PTch7B79GizDgPxzZwiqlBOPzys1QONlqW
+# mGAghOnz2/lG0yyCt9Jfq70e
 # SIG # End signature block
