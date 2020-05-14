@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.0.2.0
+  Version     : 1.0.3.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -30,6 +30,129 @@ $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:
 #*======v FUNCTIONS v======
 
 
+
+#*------v ConvertTo-MarkdownTable.ps1 v------
+Function ConvertTo-MarkdownTable {
+    <#
+    .SYNOPSIS
+    ConvertTo-MarkdownTable - Converts a powershell object into a markdown table
+    .NOTES
+    Version     : 1.0.0
+    Author      : BenNeise
+    Website     :	https://gist.github.com/BenNeise/4c837213d0f313715a93
+    Twitter     :	
+    CreatedDate : 2020-05-14
+    FileName    : ConvertTo-MarkdownTable,os1
+    License     : 
+    Copyright   : 
+    Github      : https://gist.github.com/mac2000/86150ab43cfffc5d0eef
+    Tags        : Powershell,Markdown,Object
+    AddedCredit : mac2000
+    AddedWebsite:	https://gist.github.com/mac2000/86150ab43cfffc5d0eef
+    AddedTwitter:	URL
+    AddedCredit : TylerRudie
+    AddedWebsite:	https://gist.github.com/mac2000/86150ab43cfffc5d0eef
+    AddedCredit : aaroncalderon
+    AddedWebsite:	https://gist.github.com/aaroncalderon/09a2833831c0f3a3bb57fe2224963942
+    REVISIONS   :
+    * 8:22 AM 5/14/2020 ren'd ConvertTo-Markdown -> ConvertTo-MarkdownTable ; updated CBH ; reformated a bit ; implemented TylerRudie' $null property fix ; added -NewLine switch to trigger aaroncalderon's `n-append file-append workaround, as an option ; added -Border param to create outer-border (|Heading1|Heading2| vs Heading1|Heading2)
+    * Nov 6, 2019 TylerRudie added if/then to exempt property:$null issue
+    * Jun 11, 2015 last BenNeise update (merged mac2000's Apr 17, 2015 changes)
+    .DESCRIPTION
+    ConvertTo-MarkdownTable - Converts a powershell object into a markdown table
+    .PARAMETER  collection
+    Powershell object to be converted
+    .PARAMETER  NewLine
+    Switch to append trailing \n to each line (suppresses errors writing to files)[-NewLine]
+    .PARAMETER  Border
+    Switch to wrap each line in outter pipe(|) symbols: |Heading1|Heading2| vs Heading1|Heading2 (defaulted `$true) [-Border]
+    .INPUTS
+    None
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    $data | ConvertTo-Markdown
+    Convert object to markdown, input & output via pipeline
+    .EXAMPLE
+    ConvertTo-Markdown($data)
+    Convert passed object to markdown, output via pipeline
+    .EXAMPLE
+    $data | ConvertTo-Markdown -border:$false -NewLine 
+    Convert object to markdown, and output to pipeline, suppress border, add NewLines to separator row
+    
+    .LINK
+    https://gist.github.com/mac2000/86150ab43cfffc5d0eef
+    #>
+    
+    [CmdletBinding()]
+    [OutputType([string])]
+    Param (
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $true,HelpMessage="Powershell object to be converted[-Collection `$obj]")]
+        [PSObject[]]$Collection,
+        [Parameter(HelpMessage="Switch to append trailing \n to each line (suppresses errors writing to files)[-NewLine]")]
+        [switch] $NewLine,
+        [Parameter(HelpMessage="Switch to wrap each line in outter pipe(|) symbols (makes more visually similar to a full table, defaulted `$true) [-Border]")]
+        [switch] $Border=$true
+    ) 
+    
+    Begin {
+        $verbose = ($VerbosePreference -eq "Continue") ; 
+        Write-verbose -verbose:$verbose "$((get-date).ToString('HH:mm:ss')):MSG" ;
+        $items = @() ; 
+        $columns = @{} ; 
+    } # BEG-E
+    Process {
+        ForEach($item in $collection) {
+            $items += $item
+            $item.PSObject.Properties | ForEach-Object {
+                if ($null -ne $_.Value ){
+                    if(-not $columns.ContainsKey($_.Name) -or $columns[$_.Name] -lt $_.Value.ToString().Length) {
+                        $columns[$_.Name] = $_.Value.ToString().Length ; 
+                    } ; 
+                } ; 
+            } ; 
+        } ; 
+    } # PROC-E
+
+    End {
+        # space-pad columns: 1)calc max len of ea column
+        ForEach($key in $($columns.Keys)) { $columns[$key] = [Math]::Max($columns[$key], $key.Length) }
+
+        # 2) space-pad hdr row, to match col widths
+        $header = @()
+        ForEach($key in $columns.Keys) { $header += ('{0,-' + $columns[$key] + '}') -f $key } ; 
+        if($Border){  '| ' + $($header -join ' | ' ) + ' |' }
+        else { $header -join ' | '  } ; 
+
+        # space-pad seperator row, to match col widths
+        $separator = @() ; 
+        ForEach($key in $columns.Keys) { $separator += '-' * $columns[$key] } ; 
+        if(!$NewLine){
+            if($Border){  '| ' + $($separator -join ' | ' ) + ' |' }
+            else { $separator -join ' | ' } ; 
+        } else {
+            <# TylerRudy: addresses issues piping seperator line output to a function that appends to a file: workaround via append trailing `n.
+    $($separator -join ' | ') + "`n"
+            #>
+            if($Border){  '| ' + $($separator -join ' | ' ) + ' |`n' }
+            else { $($separator -join ' | ') + "`n" } ; 
+        } ;
+
+        <#
+        
+        #>
+
+        # append the items
+        ForEach($item in $items) {
+            $values = @() ; 
+            ForEach($key in $columns.Keys) { $values += ('{0,-' + $columns[$key] + '}') -f $item.($key) } ; 
+            if($Border){  '| ' + $($values -join ' | ' ) + ' |' }
+            else { $values -join ' | '  } ; 
+        } ; 
+    } # END-E
+}
+
+#*------^ ConvertTo-MarkdownTable.ps1 ^------
 
 #*------v create-AcronymFromCaps.ps1 v------
 Function create-AcronymFromCaps {
@@ -282,7 +405,7 @@ function Remove-StringLatinCharacters {
     .SYNOPSIS
     Remove-StringLatinCharacters() - Substitute Cyrillic characters into normal unaccented characters. Addon to Remove-Stringdiacriic, converts untouched Polish crossed-L to L. But doesn't proper change some german chars (rplcs german est-set with ? -> do Remove-StringDiacritic first, and it won't damage german).
    .NOTES
-    Version     : 1.0.2
+    Version     : 1.0.1
     Author: Marcin Krzanowicz
     Website:	https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html#
     Twitter     :	@tostka / http://twitter.com/tostka
@@ -522,14 +645,14 @@ Function wrap-Text {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function create-AcronymFromCaps,get-StringHash,IsNumeric,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
+Export-ModuleMember -Function ConvertTo-MarkdownTable,create-AcronymFromCaps,get-StringHash,IsNumeric,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUw8Zv6nDKMA9YO85ntC+tv56/
-# Wl+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUp99gpz0oRfQvvJ+g6kthghuK
+# kWSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -544,9 +667,9 @@ Export-ModuleMember -Function create-AcronymFromCaps,get-StringHash,IsNumeric,Qu
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSvd939
-# +jzdMNhrjkv+0ODbsZlqZTANBgkqhkiG9w0BAQEFAASBgI/Ytj6gI5++PsnilXvw
-# LxffTVxy+ImFd1L0J5LO135H5pqMRDS00S5MVE0Tq+ar30EOZ3euZgk+Tt1uF5YZ
-# MbV4hoSJsxl2oXGZ/NxclR6AeihoU7PTch7B79GizDgPxzZwiqlBOPzys1QONlqW
-# mGAghOnz2/lG0yyCt9Jfq70e
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRHbBsP
+# 7qBw8LlngIr5Fn7rlRz8izANBgkqhkiG9w0BAQEFAASBgAj+vsITSDMGhFnBcJRZ
+# sahSD78bb1JA8aP2+oF6NERNRAzWkUURe6QED02UlFJS3pANRcYqf1TyJHWblimD
+# R+Fi9OKjiitE+EREHtC/X22kikdkLWQ1wW7FSjCmLTG/U/B9hw5Ntpl1e4KplD4i
+# xCnQjUzaWS++6Erk+TorHKHa
 # SIG # End signature block
