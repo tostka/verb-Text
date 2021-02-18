@@ -12,7 +12,7 @@
 RootModule = 'verb-Text.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.3'
+ModuleVersion = '1.0.4'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Generic text-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('ConvertTo-MarkdownTable','create-AcronymFromCaps','get-StringHash','IsNumeric','Quote-List','Quote-String','Remove-StringDiacritic','Remove-StringLatinCharacters','Unwrap-Text','Unwrap-TextN','WordWrap-String','wrap-Text')
+FunctionsToExport = @('create-AcronymFromCaps','get-StringHash','IsNumeric','Quote-List','Quote-String','Remove-StringDiacritic','Remove-StringLatinCharacters','Unwrap-Text','Unwrap-TextN','WordWrap-String','wrap-Text')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUJzdbDrnhhcbHDVt/AC8KwV6H
-# MtagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUy1tO/EjwHj5OH1mSvGhaVx5c
+# 7pSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTu9ycQ
-# 9Yw7v++Bi1vZxjk6OZGY2DANBgkqhkiG9w0BAQEFAASBgIwlRCFaCMBlYBlgKJw4
-# aBoBqHt9fezG53GBhUxOrVCOChik/SWuWr+dbUDjokXLLl2RXPU4hFTQ3qIgvs7G
-# bvixSloSi7+gQxGftcVt6sGNbOOiR+GEh8n3jv/pApj/TQyTaK+7Lnz6Xhx0tLsy
-# qckclT9kECyOotLgM+jo2XmN
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTCXJ5Y
+# efFo+8te8Eqa4cD0ffm+djANBgkqhkiG9w0BAQEFAASBgJcIii/Im5UX22pHAHOw
+# rEqlYXw1jyNdXh9aQFX1PjKbfeFr/zfh/aeFXJRcudiWLGQNpSW+I7cGPRx6IdXo
+# G43nd5XGX/+xQKUyivi4qWsp/dwyUT10Wus44fXyEbwcV2q4SFiJUJq7uDGo3fP4
+# koXAMLzoX8q86IIOPT9buy31
 # SIG # End signature block
