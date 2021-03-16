@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.0.6.0
+  Version     : 1.0.5.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -46,7 +46,7 @@ Function create-AcronymFromCaps {
     8:58 AM 2/16/2016 - initial version
     .DESCRIPTION
     create-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
-    Note:-doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' prefix _for it's own_ new commandlets, necessitating users to retroactrively shift prior use of -commandprefix 'exo', in existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
+    -doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' for it's own new commandlets, necessitating users to retroactrively shift common use of -commandprefix 'exo' in all of their existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
     .PARAMETER  String
     String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'
     .PARAMETER doEXOSubstitution
@@ -77,12 +77,6 @@ Function create-AcronymFromCaps {
         [switch] $doEXOSubstitution
     ) ;
     $Verbose = ($VerbosePreference -eq 'Continue') ; 
-    if($doEXOSubstitution){
-        if($String -cmatch '((E)*)XO'){
-            write-verbose "-doEXOSubstitution: Ucase 'EXO|XO' detected in `$String: .toLower()'ing the matched string, so that it only appears in output acronym as single lcase 'x', rather than full all caps '(E)XO'" 
-            $String = $tcmdlet.replace($matches[0],$matches[0].tolower()) ; 
-        } ; 
-    } ;
     $AcroCap = $String -split "" -cmatch '([A-Z])' -join ""  ;
     if($doEXOSubstitution){
         if($String -match '((e)*)xo'){
@@ -90,7 +84,6 @@ Function create-AcronymFromCaps {
             $AcroCap = "$($AcroCap.substring(0,1))x$($AcroCap.substring(1,$AcroCap.length-1))" ; 
         } ; 
     } ; 
-    write-verbose "output:$($AcroCap)" ; 
     write-output $AcroCap ;
 }
 
@@ -555,8 +548,8 @@ Export-ModuleMember -Function create-AcronymFromCaps,get-StringHash,IsNumeric,Qu
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQULBKyzkI+8tOXnYKVAcqCbb6w
-# 6LagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU0RUNOJJLQZbQCr9Ula0JNZsY
+# 8FygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -571,9 +564,9 @@ Export-ModuleMember -Function create-AcronymFromCaps,get-StringHash,IsNumeric,Qu
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTXhEen
-# qaMzKEWe40oVVu1yGgv24zANBgkqhkiG9w0BAQEFAASBgHtTR49OpKfbZVEnMMGB
-# qIpnxnt12ehiU1McsxoVJwU0OABD+G7QXEv5H2WqLf3ibeLb92kSzQplU9QAyiZZ
-# SgByfeXeZufT7iYyT0zUtJ2OR8BzpfwxamFcncnJtZL70sYtijBEggqb9B+o+vaP
-# wTeJAG8owSnHUzlS23Rnfi7s
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSYRJSP
+# qD7UUL+YhWgihu+xst0glTANBgkqhkiG9w0BAQEFAASBgIJj1/n5tmjmxtk37wyN
+# p4I3XoXyrXf40RaqVnaCKQEoqKdguF3GyTeMZiCFVO0ukop88a0/JIQ96zPXkUX4
+# Nx5pblZeo+MQFnb0lbHTvOm7efs/EO5F4tA6IqqpTq1jLuQvwP07SI9DQGqnlaC1
+# kF7O/Xg6S8vJcU6170D62rP3
 # SIG # End signature block
