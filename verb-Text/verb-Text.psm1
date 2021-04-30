@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.0.6.0
+  Version     : 1.0.8.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -30,6 +30,96 @@ $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:
 #*======v FUNCTIONS v======
 
 
+
+#*------v convertFrom-Base64String.ps1 v------
+function convertFrom-Base64String {
+    <#
+    .SYNOPSIS
+    convertFrom-Base64String - Convert specified file to Base64 encoded string and return to pipeline
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-04-30
+    FileName    : convertFrom-Base64String.ps1
+    License     : MIT License
+    Copyright   : (c) 2019 Todd Kadrie
+    Github      : https://github.com/tostka
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 8:26 AM 12/13/2019 convertFrom-Base64String:init
+    .DESCRIPTION
+    convertFrom-Base64String - Convert specified string from Base64 encoded string back to text and return to pipeline
+    .PARAMETER  path
+    File to be Base64 encoded (image, text, whatever)[-path path-to-file]
+    .EXAMPLE
+    convertFrom-Base64String.ps1 -string 'xxxxx' ; 
+    .LINK
+    #>
+    [CmdletBinding(DefaultParameterSetName='File')]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
+        [String]$string
+    ) ;
+    if($File){
+        $String = (get-content $path -encoding byte) ; 
+    } 
+    # [convert]::ToBase64String((get-content $path -encoding byte)) | write-output ; 
+    #[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String)) | write-output ; 
+    [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($string))| write-output ;     
+}
+
+#*------^ convertFrom-Base64String.ps1 ^------
+
+#*------v convertTo-Base64String.ps1 v------
+function convertTo-Base64String {
+    <#
+    .SYNOPSIS
+    convertTo-Base64String - Convert specified file to Base64 encoded string and return to pipeline
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2019-12-13
+    FileName    : convertTo-Base64String.ps1
+    License     : MIT License
+    Copyright   : (c) 2019 Todd Kadrie
+    Github      : https://github.com/tostka
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 8:26 AM 12/13/2019 convertTo-Base64String:init
+    .DESCRIPTION
+    convertTo-Base64String - Convert specified file to Base64 encoded string and return to pipeline
+    .PARAMETER  path
+    File to be Base64 encoded (image, text, whatever)[-path path-to-file]
+    .EXAMPLE
+    .\convertTo-Base64String.ps1 C:\Path\To\Image.png >> base64.txt ; 
+    .EXAMPLE
+    .\convertTo-Base64String.ps1
+    .LINK
+    #>
+    [CmdletBinding(DefaultParameterSetName='File')]
+    PARAM(
+        [Parameter(ParameterSetName='File',Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="File to be Base64 encoded (image, text, whatever)[-path path-to-file]")]
+        [ValidateScript({Test-Path $_})][String]$path,
+        [Parameter(ParameterSetName='String',HelpMessage="Optional string to be converted[-string 'SAMPLEINPUT']")]
+        [String]$string
+    ) ;
+    if($File){
+        $String = (get-content $path -encoding byte) ; 
+    } 
+    # [convert]::ToBase64String((get-content $path -encoding byte)) | write-output ; 
+    [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String)) | write-output ; 
+    
+}
+
+#*------^ convertTo-Base64String.ps1 ^------
 
 #*------v create-AcronymFromCaps.ps1 v------
 Function create-AcronymFromCaps {
@@ -549,14 +639,14 @@ Function wrap-Text {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function create-AcronymFromCaps,get-StringHash,IsNumeric,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
+Export-ModuleMember -Function convertFrom-Base64String,convertTo-Base64String,create-AcronymFromCaps,get-StringHash,IsNumeric,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQULBKyzkI+8tOXnYKVAcqCbb6w
-# 6LagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5WT6nyrRGykBNE3QGaiQkUSB
+# SAqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -571,9 +661,9 @@ Export-ModuleMember -Function create-AcronymFromCaps,get-StringHash,IsNumeric,Qu
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTXhEen
-# qaMzKEWe40oVVu1yGgv24zANBgkqhkiG9w0BAQEFAASBgHtTR49OpKfbZVEnMMGB
-# qIpnxnt12ehiU1McsxoVJwU0OABD+G7QXEv5H2WqLf3ibeLb92kSzQplU9QAyiZZ
-# SgByfeXeZufT7iYyT0zUtJ2OR8BzpfwxamFcncnJtZL70sYtijBEggqb9B+o+vaP
-# wTeJAG8owSnHUzlS23Rnfi7s
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSd+piK
+# BAwcWxGb/T2G1ExgMNxApTANBgkqhkiG9w0BAQEFAASBgITUTcP9bQgXVGbV3A7m
+# Ey6HM2D5l55uxcnLLl15JZ1cjq5h1JIRldJhST/w8tlxuRtByavNzMdkhkJ9JAuV
+# zpJYSU9y6NiAIMXA9j/ZrrYhZ+OTTuKknoG1EdHdNcH79hWXWfLGE3UZiJrNPJLm
+# OhTo12Mk6GaNbTOhsqTgAaPR
 # SIG # End signature block
