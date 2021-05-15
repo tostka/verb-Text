@@ -12,7 +12,7 @@
 RootModule = 'verb-Text.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.8'
+ModuleVersion = '1.0.12'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Generic text-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('convertFrom-Base64String','convertTo-Base64String','create-AcronymFromCaps','get-StringHash','IsNumeric','Quote-List','Quote-String','Remove-StringDiacritic','Remove-StringLatinCharacters','Unwrap-Text','Unwrap-TextN','WordWrap-String','wrap-Text')
+FunctionsToExport = @('convertFrom-Base64String','convertFrom-Html','convertTo-Base64String','create-AcronymFromCaps','get-StringHash','IsNumeric','Quote-List','Quote-String','Remove-StringDiacritic','Remove-StringLatinCharacters','Unwrap-Text','Unwrap-TextN','WordWrap-String','wrap-Text')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUcNYvitx/BfeE7RG6c43wbok/
-# IkigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkdJll1HrRB2N8EVK9yuotPIe
+# JamgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSWzSjd
-# En3EpQUINs2HsJOwqSGcZDANBgkqhkiG9w0BAQEFAASBgFcTzzGMTNPE26/3aHAv
-# 2E/j8beqaIcZ602hH1Zuw86++mzq7+35Fcmx0ZXbuggLMkL534zJ//tbx16lZRdl
-# ZnzcEJkW+Xj5jdRIW5hzOGLkkg76Q0323Zxv++GaLzdprcqtKKgsnOkOP+RddQiB
-# yetV3mDt95kG780jSg/aaD2a
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQLwdMl
+# 2a8V5wYyVkqxTES3V3DjSDANBgkqhkiG9w0BAQEFAASBgI95YLf6k9AqUqh0tMFK
+# wjZdFTjFancOkSqnCgxcdKOBrkBbI17O5Q0Nwu7/89+l6UGNl+DfeAJYnbgVzTvX
+# mig5PNBzf513DRdaEgFVI3ChpXubR/e2gTewYB2nELZsBDlcxV2LKyZ3+bVoux0l
+# 92luTql2zwcJUTprLeZa1+34
 # SIG # End signature block

@@ -1,11 +1,11 @@
-# verb-text.psm1
+ï»¿# verb-text.psm1
 
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.0.11.0
+  Version     : 1.0.9.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -92,7 +92,7 @@ function convertFrom-Html {
     AddedCredit : Winston Fassett
     AddedWebsite:	http://winstonfassett.com/blog/author/Winston/
     REVISIONS
-    * 3:11 PM 5/14/2021 convertFrom-Html:init, added $file spec
+    * 8:26 AM 12/13/2019 convertFrom-Html:init
     .DESCRIPTION
     convertFrom-Html - Convert specified text html to plain text (replace html tags & entities) and return to pipeline
     Minimal port of Winston Fassett's html-ToText()
@@ -105,39 +105,11 @@ function convertFrom-Html {
     .LINK
     https://github.com/tostka/verb-text
     #>
-    <# #-=-=-=MUTUALLY EXCLUSIVE PARAMS OPTIONS:-=-=-=-=-=
-# designate a default paramset, up in cmdletbinding line
-[CmdletBinding(DefaultParameterSetName='SETNAME')]
-  # * set blank, if none of the sets are to be forced (eg optional mut-excl params)
-  # * force exclusion by setting ParameterSetName to a diff value per exclusive param
-
-# example:single $Computername param with *multiple* ParameterSetName's, and varying Mandatory status per set
-    [Parameter(ParameterSetName='LocalOnly', Mandatory=$false)]
-    $LocalAction,
-    [Parameter(ParameterSetName='Credential', Mandatory=$true)]
-    [Parameter(ParameterSetName='NonCredential', Mandatory=$false)]
-    $ComputerName,
-    # $Credential as tied exclusive parameter
-    [Parameter(ParameterSetName='Credential', Mandatory=$false)]
-    $Credential ;    
-    # effect: 
-    -computername is mandetory when credential is in use
-    -when $localAction param (w localOnly set) is in use, neither $Computername or $Credential is permitted
-    write-verbose -verbose:$verbose "ParameterSetName:$($PSCmdlet.ParameterSetName)"
-#-=-=-=-=-=-=-=-=
-#>
-    [CmdletBinding(DefaultParameterSetName='fromstring')]
+    [CmdletBinding()]
     PARAM(
-        [Parameter(ParameterSetName='fromstring',Position=0,Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted from html to plain text[-string '<b>text</b>']")]
-        [System.String]$string,
-        [Parameter(ParameterSetName='fromfile',HelpMessage="File to be converted from HTML to Text (and returned to pipeline)[-PARAM SAMPLEINPUT]")]
-        [ValidateScript({Test-Path $_})]
-        [string]$File
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted from html to plain text[-string '<b>text</b>']")]
+        [System.String]$string
     ) ;
-    if($File){
-        $String = (get-content $file -encoding byte) ; 
-    } ;
-    
     # remove line breaks, replace with spaces
     $string = $string -replace "(`r|`n|`t)", " "
     # write-verbose "removed line breaks: `n`n$string`n"
@@ -300,7 +272,224 @@ Function create-AcronymFromCaps {
 #*------^ create-AcronymFromCaps.ps1 ^------
 
 #*------v get-StringHash.ps1 v------
-function get-StringHash {
+main. If the domain does not verify, allow time for replication</p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="327" height="157" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-116.png" alt="" nclass="wp-image-3622" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-116.png 327w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-116-300x144.png 300w" sizes="(max-width: 327px) 100vw, 327px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>14. The following appears after Microsoft have verified your domain. You may want to stop at this point as you may not want to configure email routing just yet without planning. I&#8217;ll explain further at step 15 below.<br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="1024" height="222" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-117-1024x222.png" alt="" class="wp-image-3623" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-117-1024x222.png 1024w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-117-300x65.png 300w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-117-768x166.png 768w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-117.png 1395w" sizes="(max-width: 1024px) 100vw, 1024px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p><strong>The text states:</strong></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>Connect your domain to your Microsoft services so you can use email and instant messaging. There are a couple of options to consider, depending on how you&#8217;d like to manage domain name service (DNS) records for your domain&nbsp;<strong>â€Žimranrashid.co.ukâ€Ž</strong>.</p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>Add your own DNS records. We&#8217;ll provide a list of DNS records that you&#8217;ll need to add for your domain at your DNS host.</p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>15. If you decide to cancel the setup after verification, you&#8217;ll find that the new domain is now available within Exchange Admin Center. Let&#8217;s take a look. Note that your domain has been verified so if you decide to cancel the wizard at this point. You can return and continue from where you left at a later time. Let&#8217;s login to Exchange Online and check the status of the new domain aswell as add a new email alias to my mailbox. No email routing has been configured at this point.<br><br>&#8211; Access Exchange Admin Center<br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="260" height="364" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-118.png" alt="" class="wp-image-3624" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-118.png 260w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-118-214x300.png 214w" sizes="(max-width: 260px) 100vw, 260px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>&#8211; Click Mail flow<br><br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="261" height="278" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-119.png" alt="" class="wp-image-3625" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>&#8211; Click accepted domains and you&#8217;ll find that the domain has been added as your default domain<br><br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="866" height="298" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-120.png" alt="" class="wp-image-3626" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-120.png 866w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-120-300x103.png 300w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-120-768x264.png 768w" sizes="(max-width: 866px) 100vw, 866px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>-I won&#8217;t be able to receive email to this domain until I continue with configuring the required DNS/MX records but I am in a position to start configuring email addresses.<br><br>&#8211; Click on recipients<br><br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="300" height="314" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-121.png" alt="" class="wp-image-3627" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-121.png 300w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-121-287x300.png 287w" sizes="(max-width: 300px) 100vw, 300px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>-In the example below, my mailbox is still set to the default onmicrosoft.com address<br><br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="842" height="298" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-122.png" alt="" class="wp-image-3628" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-122.png 842w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-122-300x106.png 300w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-122-768x272.png 768w" sizes="(max-width: 842px) 100vw, 842px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>&#8211; Click the edit icon or double click the name<br><br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="460" height="138" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-123.png" alt="" class="wp-image-3629" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-123.png 460w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-123-300x90.png 300w" sizes="(max-width: 460px) 100vw, 460px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>&#8211; Click email addresses, add your email address and save<br><br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="600" height="458" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-124.png" alt="" class="wp-image-3630" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-124.png 600w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-124-300x229.png 300w" sizes="(max-width: 600px) 100vw, 600px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>&#8211; My email address has changed from the default onmicrosoft.com to my newly added domain.<br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="340" height="172" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-125.png" alt="" class="wp-image-3631" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-125.png 340w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-125-300x152.png 300w" sizes="(max-width: 340px) 100vw, 340px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>16. I want to continue with setting up my records to allow me to send and receive emails to my new email address<br><br><strong>You can continue with the domain setup at anytime. Note that if you&#8217;re using an external email filtering solution such as Mimecast the process is different so some planning is required before you decide to make this serious change of routing email into O365. Routing email changes should be completed at a suitable time to reduce impact to your users.</strong><br><br>So i have acccessed the Microsoft 365 Portal, clicked settings, domains and clicked my domain which is currently displaying a status of Incomplete setup</p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="560" height="103" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-126.png" alt="" class="wp-image-3632" srcset="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-126.png 560w, https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-126-300x55.png 300w" sizes="(max-width: 560px) 100vw, 560px" /></figure>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <p>17. Click Continue Setup<br><br></p>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ <figure class="wp-block-image size-large"><img loading="lazy" width="548" height="380" src="https://cloudbuild.co.uk/wp-content/uploads/2020/12/image-127.png" alt="" class="wp-   #*------v Function get-StringHash v------
+    function get-StringHash {
         <#
         .SYNOPSIS
         VERB-NOUN.ps1 - 1LINEDESC
@@ -353,7 +542,7 @@ function get-StringHash {
         } ;
         $Private:RetObject = New-Object -TypeName PSObject -Prop $properties | Sort-Object ;
         return $RetObject  ;
-    }
+    }#*------^ END Function get-stringHash ^------
 
 #*------^ get-StringHash.ps1 ^------
 
@@ -473,7 +662,7 @@ function Remove-StringDiacritic {
     Specifies the normalization form to use ;
     https://msdn.microsoft.com/en-us/library/system.text.normalizationform(v=vs.110).aspx
     .EXAMPLE
-    PS C:\> Remove-StringDiacritic "L'été de Raphaël" ;
+    PS C:\> Remove-StringDiacritic "L'ï¿½tï¿½ de Raphaï¿½l" ;
     L'ete de Raphael ;
     .LINK
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
@@ -752,5 +941,31 @@ Function wrap-Text {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convertFrom-Base64String,convertFrom-Html,convertTo-Base64String,create-AcronymFromCaps,get-StringHash,IsNumeric,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
+Export-ModuleMember -Function convertFrom-Base64String,convertFrom-Html,convertTo-Base64String,create-AcronymFromCaps,,IsNumeric,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUpWGN672Yt5B7nwaVuEWLhL/N
+# qAegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSlTFAA
+# XywfzgYA0u9lyZYoBJV4pDANBgkqhkiG9w0BAQEFAASBgG/Td9MAKXRqzoYSIeK1
+# uY0IJUpZnVhzekORsUWti+sJcRSWHZnVnFttV96Ogyo6pMxB9Z3+ClrJMZJg2vUN
+# 5nmC/r8xKUAovk5WbBBvDHfTNcelTAFORDMfrQ7cHacNxokGpaD4EQXsKnuidaoF
+# tfLiZKLYgJfhhnuLu3xCCZZL
+# SIG # End signature block
