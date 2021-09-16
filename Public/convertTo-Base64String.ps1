@@ -2,7 +2,7 @@
 function convertTo-Base64String {
     <#
     .SYNOPSIS
-    convertTo-Base64String - Convert specified file to Base64 encoded string and return to pipeline
+    convertTo-Base64String - Convert specified string or Path-to-file to Base64 encoded string and return to pipeline. If -String resolves to a path, it will be treated as a -path parameter (file content converted to Base64 encoded string). 
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -17,28 +17,38 @@ function convertTo-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:27 AM 9/16/2021 updated CBH, set -string as position 0, flipped pipeline to string from path, removed typo $file test, pre-resolve-path any string, and if it resolves to a file, load the file for conversion. Shift path validation into the body. 
     * 8:26 AM 12/13/2019 convertTo-Base64String:init
     .DESCRIPTION
-    convertTo-Base64String - Convert specified file to Base64 encoded string and return to pipeline
+    convertTo-Base64String - Convert specified string or Path-to-file to Base64 encoded string and return to pipeline. If String resolves to a path, it will be treated as a -path parameter (file content converted to Base64 encoded string). 
     .PARAMETER  path
     File to be Base64 encoded (image, text, whatever)[-path path-to-file]
+    .PARAMETER  string
+    String to be Base64 encoded [-string 'string to be encoded']
     .EXAMPLE
-    .\convertTo-Base64String.ps1 C:\Path\To\Image.png >> base64.txt ; 
+    PS> convertTo-Base64String -path C:\Path\To\Image.png >> base64.txt ; 
     .EXAMPLE
-    .\convertTo-Base64String.ps1
+    PS> convertTo-Base64String -string "my *very* minimally obfuscated info"
+    .EXAMPLE
+    PS> "address@domain.com" | convertTo-Base64String
+    Pipeline conversion of an email address to b64
     .LINK
     #>
     [CmdletBinding(DefaultParameterSetName='File')]
     PARAM(
-        [Parameter(ParameterSetName='File',Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="File to be Base64 encoded (image, text, whatever)[-path path-to-file]")]
-        [ValidateScript({Test-Path $_})][String]$path,
-        [Parameter(ParameterSetName='String',HelpMessage="Optional string to be converted[-string 'SAMPLEINPUT']")]
+        [Parameter(ParameterSetName='File',HelpMessage="File to be Base64 encoded (image, text, whatever)[-path path-to-file]")]
+        #[Alias('ALIAS1', 'ALIAS2')]
+        #[ValidateScript({Test-Path $_})]
+        [String]$path,
+        [Parameter(ParameterSetName='String',Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="string to be converted[-string 'string to be encoded']")]
         [String]$string
     ) ;
-    if($File){
-        $String = (get-content $path -encoding byte) ; 
+    if($path -OR ($path = $string| Resolve-Path -ea 0)){
+        if(test-path $path){
+          write-verbose "(loading specified/resolved path:$($path))" ; 
+          $String = (get-content $path -encoding byte) ; 
+        } else { throw "Unable to load specified -path:`n$($path))" } ; 
     } 
-    # [convert]::ToBase64String((get-content $path -encoding byte)) | write-output ; 
     [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String)) | write-output ; 
     
 } ; 
