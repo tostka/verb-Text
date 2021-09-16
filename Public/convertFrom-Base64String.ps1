@@ -2,7 +2,7 @@
 function convertFrom-Base64String {
     <#
     .SYNOPSIS
-    convertFrom-Base64String - Convert specified file to Base64 encoded string and return to pipeline
+    convertFrom-Base64String - Convert Base64 encoded string back to original text, and return to pipeline
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -17,25 +17,25 @@ function convertFrom-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:38 AM 9/16/2021 removed spurious DefaultParameterSet matl and file/path test material (from convertto-b64...), added pipeline example to CBH
     * 8:26 AM 12/13/2019 convertFrom-Base64String:init
     .DESCRIPTION
     convertFrom-Base64String - Convert specified string from Base64 encoded string back to text and return to pipeline
-    .PARAMETER  path
+    .PARAMETER  string
     File to be Base64 encoded (image, text, whatever)[-path path-to-file]
     .EXAMPLE
-    convertFrom-Base64String.ps1 -string 'xxxxx' ; 
+    PS> convertFrom-Base64String -string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8=' ; 
+    Convert Base64 encoded string back to original unencoded text
+    .EXAMPLE
+    PS> 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8=' | convertTo-Base64String
+    Pipeline conversion of an string address from Base64.
     .LINK
     #>
-    [CmdletBinding(DefaultParameterSetName='File')]
+    [CmdletBinding()]
     PARAM(
-        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
+        [Parameter(Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
         [String]$string
     ) ;
-    if($File){
-        $String = (get-content $path -encoding byte) ; 
-    } 
-    # [convert]::ToBase64String((get-content $path -encoding byte)) | write-output ; 
-    #[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String)) | write-output ; 
     [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($string))| write-output ;     
 } ; 
 #*------^ END Function convertFrom-Base64String ^------
