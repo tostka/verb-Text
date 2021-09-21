@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.0.13.0
+  Version     : 1.0.14.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -995,42 +995,6 @@ function get-StringHash {
 
 #*------^ get-StringHash.ps1 ^------
 
-#*------v IsNumeric.ps1 v------
-Function IsNumeric {
-    <#
-    .SYNOPSIS
-    IsNumeric.ps1 - Test a given value is numeric
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
-    FileName    : IsNumeric.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
-    Tags        : Powershell,Text
-    REVISIONS
-    * 8:27 PM 5/23/2014
-    .DESCRIPTION
-    IsNumeric.ps1 - Test a given value is numeric
-    .PARAMETER Value
-    Value to be evaluated
-    .EXAMPLE
-    $value="Win";IsNumeric($value);
-    Test whether the string 'Win' is numeric (returns False)
-    .EXAMPLE
-    $value="80";IsNumeric($value);
-    Test whether the string '80' is numeric (returns True)
-    .LINK
-    #>
-    param($value)
-    ($($value.Trim()) -match "^[-+]?([0-9]*\.[0-9]+|[0-9]+\.?)$") | write-output ; 
-}
-
-#*------^ IsNumeric.ps1 ^------
-
 #*------v Quote-List.ps1 v------
 Function Quote-List {
     <#
@@ -1181,6 +1145,85 @@ function Remove-StringLatinCharacters {
 }
 
 #*------^ Remove-StringLatinCharacters.ps1 ^------
+
+#*------v test-IsNumeric.ps1 v------
+Function test-IsNumeric {
+    <#
+    .SYNOPSIS
+    test-IsNumeric.ps1 - Test a given value is numeric
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : test-IsNumeric.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    REVISIONS
+    * 10:59 AM 9/20/2021 ren'd IsNumeric -> test-isNumeric and added orig name as alias 
+    * 8:27 PM 5/23/2014
+    .DESCRIPTION
+    test-IsNumeric.ps1 - Test a given value is numeric
+    .PARAMETER Value
+    Value to be evaluated
+    .EXAMPLE
+    $value="Win";test-IsNumeric($value);
+    Test whether the string 'Win' is numeric (returns False)
+    .EXAMPLE
+    $value="80";test-IsNumeric($value);
+    Test whether the string '80' is numeric (returns True)
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()]
+    [Alias('IsNumeric')]
+    param($value)
+    ($($value.Trim()) -match "^[-+]?([0-9]*\.[0-9]+|[0-9]+\.?)$") | write-output ; 
+}
+
+#*------^ test-IsNumeric.ps1 ^------
+
+#*------v test-IsRegexValid.ps1 v------
+Function test-IsRegexValid {
+    <#
+    .SYNOPSIS
+    test-IsRegexValid.ps1 - does simple argument validation that a given string will pass for a regular-expresison - doesn't mean it's going to work, just that it doesn't fail initial parsing. 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : test-IsRegexValid.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS
+    * 11:10 AM 9/20/2021 init
+    .DESCRIPTION
+    test-IsRegexValid.ps1 - does simple argument validation that a given string will pass for a regular-expresison - doesn't mean it's going to work, just that it doesn't fail initial parsing. 
+    .PARAMETER pattern
+    Value to be evaluated
+    .EXAMPLE
+    $pattern="I'm\sa\sREGEX";test-IsRegexValid($PATTERN);
+    Test whether the string pattern' will parse as a regex
+    .LINK
+    #>
+    [CmdletBinding()]
+    #[Alias('IsRegexValid')]
+    param([string]$pattern)
+    try{
+        if([regex]$pattern){$true| write-output}
+    } catch {
+        $false | write-output ;
+    }     
+}
+
+#*------^ test-IsRegexValid.ps1 ^------
 
 #*------v unwrap-Text.ps1 v------
 Function Unwrap-Text {
@@ -1390,5 +1433,5 @@ Function wrap-Text {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertTo-StringReverse,convertTo-StudlyCaps,convertTo-TitleCase,create-AcronymFromCaps,get-StringHash,IsNumeric,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
+Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertTo-StringReverse,convertTo-StudlyCaps,convertTo-TitleCase,create-AcronymFromCaps,get-StringHash,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexValid,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
 
