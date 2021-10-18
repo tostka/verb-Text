@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.0.15.0
+  Version     : 1.0.16.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -57,7 +57,7 @@ function convert-CaesarCipher {
 The encoding replaces each letter with the 1st to 25th next letter in the alphabet (wrapping Z to A).
 So key 2 encrypts "HI" to "JK", but key 20 encrypts "HI" to "BC".
 This simple "mono-alphabetic substitution cipher" provides almost no security, because an attacker who has the encoded message can either use frequency analysis to guess the key, or just try all 25 keys.
-Caesar cipher is identical to Vigen�re cipher with a key of length 1.
+Caesar cipher is identical to Vigenère cipher with a key of length 1.
 Also, Rot-13 is identical to Caesar cipher with key 13. 
     .PARAMETER  path
     String to be converted[-string 'SAMPLEINPUT']
@@ -866,7 +866,7 @@ function convertTo-TitleCase {
     ) ;
     # SentanceCase : capitalize first word, rest lcase (simplistic)
     $txtInfo=(get-culture).TextInfo ;
-    # Doesn�t work on all-caps (make lcase first)
+    # Doesn’t work on all-caps (make lcase first)
     "$($txtInfo.ToTitleCase($string.toLower()))" | write-output ; 
 }
 
@@ -1075,7 +1075,7 @@ function Remove-StringDiacritic {
     Specifies the normalization form to use ;
     https://msdn.microsoft.com/en-us/library/system.text.normalizationform(v=vs.110).aspx
     .EXAMPLE
-    PS C:\> Remove-StringDiacritic "L'�t� de Rapha�l" ;
+    PS C:\> Remove-StringDiacritic "L'été de Raphaël" ;
     L'ete de Raphael ;
     .LINK
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
@@ -1439,8 +1439,8 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUCUXuuRNbcliMXISAaycOORhk
-# JlKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUZwh+x64iLR1nIvyxsBJZXb8J
+# CxygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -1455,9 +1455,9 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSE7/SS
-# zAiY43qK16S7ryrbnIErnjANBgkqhkiG9w0BAQEFAASBgHrnC7uScvKoooDdyDqQ
-# FMKR7APzKmDTY6OQC3wdA+/wyfwANgX9WH49wYxzYI08AiYJKRCKR1x9115TdyyS
-# jndwKxObvHWfgoh+E1wZAB3KxtOo4KpwGkXY9LgLqrfOKElDI/VvSU88uTwMySYC
-# Nv6ram5UwacZMbJxLGXDx8Rd
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTj4YRA
+# dyMdNXMJNqv61vj62NZD3jANBgkqhkiG9w0BAQEFAASBgDJD/57uiM98hHXnlUK7
+# dagr7Jt63mOtdJSSEkzgutqX+sz+P5OGId5iozheyodY9Zk7sN7iBv2mvbGE1CR+
+# UTFr97CddRtK4+i/sZC2bid5+wkTw3UyRy4VEsobh6PSX+7k2n9BVzHKDPdEXg+z
+# iC3IJb5gYjeL/nnC3XYFuZ5a
 # SIG # End signature block

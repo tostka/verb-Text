@@ -1,4 +1,4 @@
-# verb-text.psm1
+ï»¿# verb-text.psm1
 
 
   <#
@@ -57,7 +57,7 @@ function convert-CaesarCipher {
 The encoding replaces each letter with the 1st to 25th next letter in the alphabet (wrapping Z to A).
 So key 2 encrypts "HI" to "JK", but key 20 encrypts "HI" to "BC".
 This simple "mono-alphabetic substitution cipher" provides almost no security, because an attacker who has the encoded message can either use frequency analysis to guess the key, or just try all 25 keys.
-Caesar cipher is identical to Vigenère cipher with a key of length 1.
+Caesar cipher is identical to Vigenï¿½re cipher with a key of length 1.
 Also, Rot-13 is identical to Caesar cipher with key 13. 
     .PARAMETER  path
     String to be converted[-string 'SAMPLEINPUT']
@@ -866,7 +866,7 @@ function convertTo-TitleCase {
     ) ;
     # SentanceCase : capitalize first word, rest lcase (simplistic)
     $txtInfo=(get-culture).TextInfo ;
-    # Doesn’t work on all-caps (make lcase first)
+    # Doesnï¿½t work on all-caps (make lcase first)
     "$($txtInfo.ToTitleCase($string.toLower()))" | write-output ; 
 }
 
@@ -1075,7 +1075,7 @@ function Remove-StringDiacritic {
     Specifies the normalization form to use ;
     https://msdn.microsoft.com/en-us/library/system.text.normalizationform(v=vs.110).aspx
     .EXAMPLE
-    PS C:\> Remove-StringDiacritic "L'été de Raphaël" ;
+    PS C:\> Remove-StringDiacritic "L'ï¿½tï¿½ de Raphaï¿½l" ;
     L'ete de Raphael ;
     .LINK
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
@@ -1435,3 +1435,29 @@ Function wrap-Text {
 
 Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertTo-StringReverse,convertTo-StudlyCaps,convertTo-TitleCase,create-AcronymFromCaps,get-StringHash,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexValid,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
 
+
+# SIG # Begin signature block
+# MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
+# gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUCUXuuRNbcliMXISAaycOORhk
+# JlKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
+# Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
+# ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
+# a+NnFYNRPPa8Bnm071ohGe27jNWKPVUbDfd0OY2sqCBQCEFVb5pqcIECRRnlhN5H
+# +EEJmm2x9AU0uS7IHxHeUo8fkW4vm49adkat5gAoOZOwbuNntBOAJy9LCyNs4F1I
+# KKphP3TyDwe8XqsEVwB2m9FPAgMBAAGjdjB0MBMGA1UdJQQMMAoGCCsGAQUFBwMD
+# MF0GA1UdAQRWMFSAEL95r+Rh65kgqZl+tgchMuKhLjAsMSowKAYDVQQDEyFQb3dl
+# clNoZWxsIExvY2FsIENlcnRpZmljYXRlIFJvb3SCEGwiXbeZNci7Rxiz/r43gVsw
+# CQYFKw4DAh0FAAOBgQB6ECSnXHUs7/bCr6Z556K6IDJNWsccjcV89fHA/zKMX0w0
+# 6NefCtxas/QHUA9mS87HRHLzKjFqweA3BnQ5lr5mPDlho8U90Nvtpj58G9I5SPUg
+# CspNr5jEHOL5EdJFBIv3zI2jQ8TPbFGC0Cz72+4oYzSxWpftNX41MmEsZkMaADGC
+# AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
+# Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
+# AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSE7/SS
+# zAiY43qK16S7ryrbnIErnjANBgkqhkiG9w0BAQEFAASBgHrnC7uScvKoooDdyDqQ
+# FMKR7APzKmDTY6OQC3wdA+/wyfwANgX9WH49wYxzYI08AiYJKRCKR1x9115TdyyS
+# jndwKxObvHWfgoh+E1wZAB3KxtOo4KpwGkXY9LgLqrfOKElDI/VvSU88uTwMySYC
+# Nv6ram5UwacZMbJxLGXDx8Rd
+# SIG # End signature block
