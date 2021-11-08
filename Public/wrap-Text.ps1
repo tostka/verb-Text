@@ -2,22 +2,26 @@
 Function wrap-Text {
     <#
     .SYNOPSIS
-    wrap-Text.ps1 - Wrap a string at specified number of characters
+    wrap-Text - Wrap a string at specified number of characters
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-
-    FileName    : 
+    CreatedDate : 2021-11-08
+    FileName    : wrap-Text.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
+    Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
     REVISIONS
+    * 10:48 AM 11/8/2021 updated CBH to modern spec; added param name aliases (standardizing param names); added clipboard check for sText; defaulted nChars to 80
     * added CBH
     .DESCRIPTION
-    wrap-Text.ps1 - Wrap a string at specified number of characters
+    wrap-Text - Wrap a string at specified number of characters
     .PARAMETER  sText
     Specify string to be wrapped
     .PARAMETER  nChars
@@ -25,10 +29,29 @@ Function wrap-Text {
     .EXAMPLE
     $text=wrap-Text -sText "Please send issues to technisbetas@gmail.com, putting them in the reviews doesn't help me find fix them" -nChars 30 ;
     .LINK
-    https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
+    https://github.com/tostka/verb-Text
     #>
     [CmdletBinding()]
-    param([string]$sText, [int]$nChars) 
+    param(
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="Specify string to be wrapped[-sText 'c:\path-to\script.ps1']")]
+        [Alias('Text','String')]
+        [string]$sText, 
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="Number of characters, at which to wrap the string[-nChars 120")]
+        [Alias('Characters')]
+        [int]$nChars=80
+    ) 
+    if(-not $sText){
+        $sText= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($sText){
+            write-verbose "No -sText specified, detected text on clipboard:`n$($sText)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "sText:$($sText)" ;
+    } ;
+    
     $words = $sText.split(" ");
     $sPad = "";
     $sTextO = "";
