@@ -17,6 +17,7 @@ function convertTo-StringReverse {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 11:04 AM 11/19/2021 removed typo Crlf (prevented proper join), pulled strong typing on $string (prevented flipping to [array] for processing)
     * 6:22 PM 6/18/2021 convertTo-StringReverse:init
     .DESCRIPTION
     convertTo-StringReverse - Reverse character order of passed string & return to pipeline
@@ -30,10 +31,10 @@ function convertTo-StringReverse {
     [CmdletBinding(DefaultParameterSetName='File')]
     PARAM(
         [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
-        [String]$string
+        $string
     ) ;
     $string = $string.ToCharArray() ; 
     [Array]::Reverse($string) ;
-    -join $string | write-output ; 
+    $string -join '' | write-output ; 
 } ; 
 #*------^ END Function convertTo-StringReverse ^------

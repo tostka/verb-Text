@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.0.16.0
+  Version     : 1.2.1.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -174,6 +174,73 @@ function convertFrom-Base64String {
 }
 
 #*------^ convertFrom-Base64String.ps1 ^------
+
+#*------v convertFrom-EscapedPSText.ps1 v------
+Function convertFrom-EscapedPSText {
+    <#
+    .SYNOPSIS
+    convertFrom-EscapedPSText - convert a previously backtick-escaped scriptblock of Powershell code text, to an un-escaped equivelent - specifically removing backtick-escape found on all special characters [$*\~;(%?.:@/]. 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-11-08
+    FileName    : convertFrom-EscapedPSText.ps1
+    License     : MIT License
+    Copyright   : (c) 2021 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 11:09 AM 11/8/2021 init
+    .DESCRIPTION
+    convertFrom-EscapedPSText - convert a previously backtick-escaped scriptblock of Powershell code text, to an un-escaped equivelent - specifically removing backtick-escape found on all special characters [$*\~;(%?.:@/]. 
+    Intent is to run this *after* to running a -replace pass on a given piece of pre-escaped Powershell code as text (parsing & editing scripts with powershell itself), to ensure the special characters in the block are no longer treated as literal text. Prior to doing search and replace, one would typically have escaped the special characters by running convertTo-EscapedPSText() on the block. 
+    .PARAMETER  ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
+    .EXAMPLE
+    # pre-escape PS special chars
+    $ScriptBlock = get-content c:\path-to\script.ps1 ; 
+    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock ; 
+    $splitAt = ";" ; 
+    $replaceWith = ";$([Environment]::NewLine)" ; 
+    # ";`r`n"  ; 
+    $ScriptBlock = $ScriptBlock | Foreach-Object {$_ -replace $splitAt, $replaceWith } ; 
+    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock ; 
+    Load a script file into a $ScriptBlock vari, escape special characters in the $Scriptblock, run a wrap on the text at semicolons (replace ';' with ';`n), then unescape the specialcharacters in the scriptblock, back to original functional state. 
+    .LINK
+    https://github.com/tostka/verb-Text
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
+        [Alias('Code')]
+        [string]$ScriptBlock
+    )  ; 
+    if(-not $ScriptBlock){
+        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($ScriptBlock){
+            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "ScriptBlock:$($ScriptBlock)" ;
+    } ;
+    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
+    # to escape them, have to dbl: $password.Replace('$', $$')
+    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
+    # rgx replace all special chars, to make them literals, before doing the replace (graveaccent escape ea matched char in the [$*\~;(%?.:@/] range)
+    $ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
+    $ScriptBlock | write-output ; 
+}
+
+#*------^ convertFrom-EscapedPSText.ps1 ^------
 
 #*------v convertFrom-Html.ps1 v------
 function convertFrom-Html {
@@ -540,6 +607,73 @@ function ConvertTo-CamelCase {
 }
 
 #*------^ ConvertTo-CamelCase.ps1 ^------
+
+#*------v convertTo-EscapedPSText.ps1 v------
+Function convertTo-EscapedPSText {
+    <#
+    .SYNOPSIS
+    convertTo-EscapedPSText - convert a scriptblock of Powershell code text, to an esaped equivelent - specifically backtick-escape all special characters [$*\~;(%?.:@/]. 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-11-08
+    FileName    : convertTo-EscapedPSText.ps1
+    License     : MIT License
+    Copyright   : (c) 2021 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 11:09 AM 11/8/2021 init
+    .DESCRIPTION
+    convertTo-EscapedPSText - convert a scriptblock of Powershell code text, to an esaped equivelent - specifically backtick-escape all special characters [$*\~;(%?.:@/]. 
+    Intent is to run this prior to running a -replace pass on a given piece of Powershell code, to ensure the special characters in the block are treated as literal text. Following search and replace, one would typically *un*-escape the special characters by running convertFrom-EscapedPSText() on the block. 
+    .PARAMETER  ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
+    .EXAMPLE
+    # pre-escape PS special chars
+    $ScriptBlock = get-content c:\path-to\script.ps1 ; 
+    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock ; 
+    $splitAt = ";" ; 
+    $replaceWith = ";$([Environment]::NewLine)" ; 
+    # ";`r`n"  ; 
+    $ScriptBlock = $ScriptBlock | Foreach-Object {$_ -replace $splitAt, $replaceWith } ; 
+    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock ; 
+    Load a script file into a $ScriptBlock vari, escape special characters in the $Scriptblock, run a wrap on the text at semicolons (replace ';' with ';`n), then unescape the specialcharacters in the scriptblock, back to original functional state. 
+    .LINK
+    https://github.com/tostka/verb-Text
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
+        [Alias('Code')]
+        [string]$ScriptBlock
+    )  ; 
+    if(-not $ScriptBlock){
+        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($ScriptBlock){
+            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "ScriptBlock:$($ScriptBlock)" ;
+    } ;
+    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
+    # to escape them, have to dbl: $password.Replace('$', $$')
+    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
+    # rgx replace all special chars, to make them literals, before doing the replace (graveaccent escape ea matched char in the [$*\~;(%?.:@/] range)
+    $ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
+    $ScriptBlock | write-output ; 
+}
+
+#*------^ convertTo-EscapedPSText.ps1 ^------
 
 #*------v ConvertTo-L33t.ps1 v------
 function ConvertTo-L33t {
@@ -1186,6 +1320,175 @@ Function test-IsNumeric {
 
 #*------^ test-IsNumeric.ps1 ^------
 
+#*------v test-IsRegexPattern.ps1 v------
+Function test-IsRegexPattern {
+    <#
+    .SYNOPSIS
+    test-IsRegexPattern.ps1 - 1) does simple [regex]$pattern validation -AND checks for common rgx operators (And that it contains 1+ of ^[]\{}+*?): That a given string will *pass* for a regular-expresison - doesn't mean it's going to work, just that it doesn't fail initial parsing. Only way to know for sure is to try both -like & -match with the pattern and take the one that returns results. 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : test-IsRegexPattern.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS
+    * 2:22 PM 11/12/2021 added [regex]$string initial test; fixed some typos; added example to run stack of rgx strings and output scores. 
+    Expanded Description; Switched Threshold to 1; Added a verbose grouping output on $rgxOpsSingle; removed () from duplication in $rgxOpsPairedUnCommon; Seems functional. 
+    * 11:10 AM 9/20/2021 init
+    .DESCRIPTION
+    test-IsRegexPattern.ps1 - does simple argument validation that a given string will pass for a regular-expresison, then scores for matches of three classes of Regex Operators in a given string:
+    - does it match any single-character operators: \.*+?|^$ (score 1 per match)
+    - does it match any common paired operators : (..) (score 5 for any match)
+    - does it match any uncommon paired operators : [..]|{..} (score 10 for any match)
+    - does it match a BackReference operator: \1 to \9 (score 20 for any match)
+    If the net score on a string exceeds the specified Threshold (defaults to 1), [boolean]$true is returned. 
+
+    Of course 'Threshold' is entirely arbitrary. But I did run some tests at it, to profile a range of regex/non-regex scores:
+    (code used is in example 3)
+    score name                                                                                                                                    
+    ----- ----                                                                                                                                    
+       27 (one()|two())-and-(three\2|four\3)                                                                                                      
+       26 <img\s+src\s*=\s*["']([^"']+)["']\s*/*>                                                                                                 
+       27 \b(?<username>[A-Z0-9._%+-]+)@(?<domain>[A-Z0-9.-]+\.[A-Z]+)\b                                                                          
+       15 \.\d{2}\.                                                                                                                               
+       55 ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*...
+       21 ^([0]?[1-9]|[1][0-2])[./-]([0]?[1-9]|[1|2][0-9]|[3][0|1])[./-]([0-9]{4}|[0-9]{2})$                                                      
+       12 ^[0-2][0-3]:[0-5][0-9]$                                                                                                                 
+       13 ^E[0-9a-fA-F]{10}.log$                                                                                                                  
+        3 This\sis\sthe\send                                                                                                                      
+        0 These are the times to test men's minds                                                                                                 
+       13 ^\w{2,20}$                                                                                                                              
+       19 (?i)DC=\w{1,}?\b                                                                                                                        
+       15 ((s-)*)\w*\.\w*@(toro((lab)*)|)\.com                                                                                                    
+       22 (?i:^(ADL|BCC|LYN|SPB)(MS(5|6)(2|4|5)((0)*)(0|1)((D)*)|\-\w{7})$)                                                                       
+       25 ^sip:([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$                                                               
+        0 any character or a newline repeated zero or more times                                                                                  
+       13 ^(.*?)\.(?i:RDP)$                                                                                                                       
+       21 #\sSIG\s#\sBegin\ssignature\sblock(.|\n)*(.|\n)*#\sSIG\s#\sEnd\ssignature\sblock                                                        
+       18 \w+((\s)*)\.\n((\r)*)((\s)*)\w+  
+
+
+    Regex operators factored into the above: 
+    - . matchany
+    - * match zero or more: 
+    - + match one or more
+    - ? match zero or one
+    - {} interval ops
+    - | alternation op
+    - [] list ops (char class)
+    - - , [x-y] range op 
+    - () grouping ops
+    - \digit back-ref op
+    - ^ match beginning-of-line 
+    - $ match end-of-line
+    
+    .PARAMETER String
+    String to be evaluated
+    .PARAMETER Threshold
+    Threshold score to classifiy a string as a regex pattern (1+, defaults to 1, the higher the stronger the confidence)[-Threshold 7]
+    .PARAMETER ReturnScore
+    Switch to return the score, rather than $true/$false[-returnscore]
+    .EXAMPLE
+    $pattern="I'm\sa\sREGEX";test-IsRegexPattern($PATTERN);
+    Test whether the string evaluates as likely regex
+    .EXAMPLE
+    if(test-IsRegexPattern -pattern $pattern){
+        If($matchResults = $haystack -match $pattern){
+          # treat it as a regex replace
+          $haystack -replace $pattern,$newString;
+          #$likeResults | write-output ; 
+        } elseif ($likeResults = $sString -like $pattern) { 
+          # use non-regex replace syntax
+          $target.replace($pattern,$newString);
+          #$likeResults | write-output ; 
+        } ; 
+    } ; 
+    .EXAMPLE
+    $rgxs ='(one()|two())-and-(three\2|four\3)' , '<img\s+src\s*=\s*["'']([^"'']+)["'']\s*/*>',
+     "\b(?<username>[A-Z0-9._%+-]+)@(?<domain>[A-Z0-9.-]+\.[A-Z]+)\b", "\.\d{2}\.",
+      "^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$", 
+      "^([0]?[1-9]|[1][0-2])[./-]([0]?[1-9]|[1|2][0-9]|[3][0|1])[./-]([0-9]{4}|[0-9]{2})$", "^[0-2][0-3]:[0-5][0-9]$",
+       "^E[0-9a-fA-F]{10}.log$", "This\sis\sthe\send", "These are the times to test men's minds", 
+       "^\w{2,20}$", '(?i)DC=\w{1,}?\b', '((s-)*)\w*\.\w*@(brand((lab)*)|)\.com', 
+       "(?i:^(ABC|DEF|GHI|JKL)(MS(5|6)(2|4|5)((0)*)(0|1)((D)*)|\-\w{7})$)", 
+       "^sip:([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$", 
+       "any character or a newline repeated zero or more times", "^(.*?)\.(?i:RDP)$", 
+       "#\sSIG\s#\sBegin\ssignature\sblock(.|\n)*(.|\n)*#\sSIG\s#\sEnd\ssignature\sblock", 
+       "\w+((\s)*)\.\n((\r)*)((\s)*)\w+" ; 
+    $Summary = @() ; 
+    foreach($rgx in $rgxs){
+      $rpt = @{name= $rgx; score=$null} ; 
+      $rpt.score = TEST-isregexpattern $rgx -ReturnScore -verbose ; 
+      $Summary+= [pscustomobject]$rpt ; 
+    } ; 
+    $Summary  ; 
+    Quick test suite to calibarate appropriate 'Threshold' for this function: Runs an array of variant regex strings through, 
+    and reports on range of scores for comparison. 
+    .LINK
+    #>
+    [CmdletBinding()]
+    #[Alias('IsRegexValid')]
+    param(   
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="Pattern to be evaluated[-string '^My\sRegex$']")]
+        [Alias('Pattern','Text')]
+        [string]$string,
+        [Parameter(HelpMessage="Threshold score to classifiy a string as a regex pattern (1+, defaults to 1, the higher the stronger the confidence)[-Threshold 7]")]
+        [int]$Threshold=1,
+        [Parameter(HelpMessage="Switch to return the score, rather than `$true/`$false[-returnscore]")]
+        [switch]$ReturnScore
+    )
+    $rgxOpsSingle = [regex]'[\.\*\+\?\\^\$]' ; # single-char ops as literals: \.*+?|^$ (score 1 per match)
+    $rgxOpsPairedCommon = [regex]'(\(.*\))' # (...)  (score 5 for any match)
+    $rgxOpsPairedUnCommon = [regex]'(\[.*\]|\{.*\})' # paired ops - require the pair as a bracketing set, to function. ({[..]}) (score 10 for any match)
+    $rgxBackRef = [regex]'\\[1-9]' ; # match \1 to \9 backrefs: (a(b))\2* (score 10 for any match)
+    # below was a coarse attempt at any single instance of any op, no score, aimed at boolean eval.
+    #$rgxRgxOps = [regex]'[\^\[\]\\\{\}\+\*\?\.]+' ; # check for ops:  ^[]\{}+*?() \^\[]\\\{}+\*?()
+    try{
+        # do the coarsest 'will it type as regex'? Proves litte, regular english will pass, but it's a starting point. 
+      if([regex]$string){
+            write-verbose "(passes initial test:`n[regex]$($string)" ; 
+      } ; 
+
+      #$bCouldBeRegex = ([boolean]([regex]$string) -AND [boolean]($string -match $rgxRgxOps) ); 
+      $Score = 0 ; 
+      if($ops = $string -split '' -match $rgxOpsSingle){
+          #$Score += ($string -split '' -match $rgxOpsSingle | measure).count ;
+          $Score += $ops.count ; 
+          write-verbose "`$rgxOpsSingle matches:`n$(($ops | group | ft -auto count,name|out-string).trim())`nScore:$($score)" ;
+      } ;
+      if($string -match $rgxOpsPairedCommon){
+          $vMatch = [regex]::match($string,$rgxOpsPairedCommon).captures[0].value ; 
+          $Score += 5 ; 
+          write-verbose "`$rgxOpsPairedCommon at least one match:`n$(($vMatch|out-string).trim())`nScore:$($score)" ; 
+      } ;
+      if($string -match $rgxOpsPairedUnCommon){
+          $vMatch = [regex]::match($string,$rgxOpsPairedUnCommon).captures[0].value ; 
+          $Score += 10 ;
+          write-verbose "`$rgxOpsPairedUnCommon at least one match:`n$(($vMatch|out-string).trim())`nScore:$($score)" ;
+      } ;
+      if ($string -match $rgxBackRef) {
+          $Score += 20 ;
+          $vMatch = [regex]::match($string,$rgxBackRef).captures[0].value ; 
+          write-verbose "`$rgxBackRef at least one match:`n$(($vMatch|out-string).trim())`nScore:$($score)" ;
+      } ;
+      write-verbose "(Aggregate Score:$($score))" ; 
+      if($ReturnScore){
+          $score | write-output ; 
+      } else { 
+          [boolean]($Score -ge $Threshold) | write-output ;
+      } ; 
+    } catch {
+        $false | write-output ;
+    }     
+}
+
+#*------^ test-IsRegexPattern.ps1 ^------
+
 #*------v test-IsRegexValid.ps1 v------
 Function test-IsRegexValid {
     <#
@@ -1224,6 +1527,79 @@ Function test-IsRegexValid {
 }
 
 #*------^ test-IsRegexValid.ps1 ^------
+
+#*------v unwrap-PS.ps1 v------
+Function unwrap-PS {
+    <#
+    .SYNOPSIS
+    unwrap-PS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-11-08
+    FileName    : unwrap-PS.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 11:09 AM 11/8/2021 init
+    .DESCRIPTION
+    unwrap-PS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
+    .PARAMETER  ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
+    .EXAMPLE
+    $text=unwrap-PS -ScriptBlock "write-host 'yea';`ngci 'c:\somefile.txt';" ;
+    Unwrap the specified scriptblock at the semicolons. 
+    .LINK
+    https://github.com/tostka/verb-Text
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be unwrapped (sub-out ;`n with ;) [-ScriptBlock 'c:\path-to\script.ps1']")]
+        [Alias('Code')]
+        [string]$ScriptBlock
+    )  ; 
+    if(-not $ScriptBlock){
+        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($ScriptBlock){
+            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "ScriptBlock:$($ScriptBlock)" ;
+    } ;
+    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
+    # to escape them, have to dbl: $password.Replace('$', $$')
+    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
+    # rgx replace all special chars, to make them literals, before doing any -replace (graveaccent escape ea)
+    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
+    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
+    # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
+    $splitAt = ";$([Environment]::NewLine)" ; 
+    
+    $replaceWith = ";" ; 
+    # ";`r`n"  ; 
+    $ScriptBlock = $ScriptBlock | Foreach-Object {
+            $_ -replace $splitAt, $replaceWith ;
+    } ; 
+    # then put the $'s back (stays dbld):
+    #$ScriptBlock = $ScriptBlock.Replace('$$', '$')
+    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
+    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
+    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
+    $ScriptBlock | write-output ; 
+}
+
+#*------^ unwrap-PS.ps1 ^------
 
 #*------v unwrap-Text.ps1 v------
 Function Unwrap-Text {
@@ -1384,26 +1760,102 @@ Function WordWrap-String {
 
 #*------^ WordWrap-String.ps1 ^------
 
-#*------v wrap-Text.ps1 v------
-Function wrap-Text {
+#*------v wrap-PS.ps1 v------
+Function wrap-PS {
     <#
     .SYNOPSIS
-    wrap-Text.ps1 - Wrap a string at specified number of characters
+    wrap-PS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-
-    FileName    : 
+    CreatedDate : 2021-11-08
+    FileName    : wrap-PS.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
+    Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
     REVISIONS
+    * 11:09 AM 11/8/2021 init
+    .DESCRIPTION
+    wrap-PS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons)
+    .PARAMETER  ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
+    .EXAMPLE
+    $text=wrap-PS -ScriptBlock "write-host 'yea'; gci 'c:\somefile.txt';" ;
+    Wrap the specified scriptblock at the semicolons. 
+    .LINK
+    https://github.com/tostka/verb-Text
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
+        [Alias('Code')]
+        [string]$ScriptBlock
+    )  ; 
+    if(-not $ScriptBlock){
+        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($ScriptBlock){
+            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "ScriptBlock:$($ScriptBlock)" ;
+    } ;
+    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
+    # to escape them, have to dbl: $password.Replace('$', $$')
+    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
+    # rgx replace all special chars, to make them literals, before doing any -replace (graveaccent escape ea)
+    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
+    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
+    # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
+    $splitAt = ";" ; 
+    $replaceWith = ";$([Environment]::NewLine)" ; 
+    # ";`r`n"  ; 
+    $ScriptBlock = $ScriptBlock | Foreach-Object {
+            $_ -replace $splitAt, $replaceWith ;
+    } ; 
+    # then put the $'s back (stays dbld):
+    #$ScriptBlock = $ScriptBlock.Replace('$$', '$')
+    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
+    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
+    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
+    $ScriptBlock | write-output ; 
+}
+
+#*------^ wrap-PS.ps1 ^------
+
+#*------v wrap-Text.ps1 v------
+Function wrap-Text {
+    <#
+    .SYNOPSIS
+    wrap-Text - Wrap a string at specified number of characters
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-11-08
+    FileName    : wrap-Text.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 10:48 AM 11/8/2021 updated CBH to modern spec; added param name aliases (standardizing param names); added clipboard check for sText; defaulted nChars to 80
     * added CBH
     .DESCRIPTION
-    wrap-Text.ps1 - Wrap a string at specified number of characters
+    wrap-Text - Wrap a string at specified number of characters
     .PARAMETER  sText
     Specify string to be wrapped
     .PARAMETER  nChars
@@ -1411,10 +1863,29 @@ Function wrap-Text {
     .EXAMPLE
     $text=wrap-Text -sText "Please send issues to technisbetas@gmail.com, putting them in the reviews doesn't help me find fix them" -nChars 30 ;
     .LINK
-    https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
+    https://github.com/tostka/verb-Text
     #>
     [CmdletBinding()]
-    param([string]$sText, [int]$nChars) 
+    param(
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="Specify string to be wrapped[-sText 'c:\path-to\script.ps1']")]
+        [Alias('Text','String')]
+        [string]$sText, 
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="Number of characters, at which to wrap the string[-nChars 120")]
+        [Alias('Characters')]
+        [int]$nChars=80
+    ) 
+    if(-not $sText){
+        $sText= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($sText){
+            write-verbose "No -sText specified, detected text on clipboard:`n$($sText)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "sText:$($sText)" ;
+    } ;
+    
     $words = $sText.split(" ");
     $sPad = "";
     $sTextO = "";
@@ -1433,14 +1904,14 @@ Function wrap-Text {
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertTo-StringReverse,convertTo-StudlyCaps,convertTo-TitleCase,create-AcronymFromCaps,get-StringHash,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexValid,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-Text -Alias *
+Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertTo-StringReverse,convertTo-StudlyCaps,convertTo-TitleCase,create-AcronymFromCaps,get-StringHash,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,unwrap-PS,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-PS,wrap-Text -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUZwh+x64iLR1nIvyxsBJZXb8J
-# CxygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUR+Yq+gKpr8EtcYyeCdAZU6iH
+# d3GgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -1455,9 +1926,9 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTj4YRA
-# dyMdNXMJNqv61vj62NZD3jANBgkqhkiG9w0BAQEFAASBgDJD/57uiM98hHXnlUK7
-# dagr7Jt63mOtdJSSEkzgutqX+sz+P5OGId5iozheyodY9Zk7sN7iBv2mvbGE1CR+
-# UTFr97CddRtK4+i/sZC2bid5+wkTw3UyRy4VEsobh6PSX+7k2n9BVzHKDPdEXg+z
-# iC3IJb5gYjeL/nnC3XYFuZ5a
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTIxre3
+# El0xt/euWcBuAr89u4birzANBgkqhkiG9w0BAQEFAASBgHYFxpVWMJE9gYTg747D
+# 3GDKmLTlphRXnIVpKmYbn1HF1bWeC4yAktBfFze1xRACV9WG7lZA2DoQVnIv7/LJ
+# qGzTCox41D8ZOqfjMquk2GIzNlFNFZ/rAkCKXaXB7K0HD+PaghGrGjfzOyw8R63F
+# Q0OXPP9peNviN+H2YVt8kTg6
 # SIG # End signature block
