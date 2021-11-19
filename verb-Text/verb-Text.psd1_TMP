@@ -12,7 +12,7 @@
 RootModule = 'verb-Text.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.0.17'
+ModuleVersion = '1.2.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Generic text-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('convert-CaesarCipher','_encode','_decode','convertFrom-Base64String','convertFrom-EscapedPSText','convertFrom-Html','Convert-invertCase','convert-Rot13','convert-Rot47','convertTo-Base64String','ConvertTo-CamelCase','convertTo-EscapedPSText','ConvertTo-L33t','ConvertTo-lowerCamelCase','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertTo-StringReverse','convertTo-StudlyCaps','convertTo-TitleCase','create-AcronymFromCaps','get-StringHash','Quote-List','Quote-String','Remove-StringDiacritic','Remove-StringLatinCharacters','test-IsNumeric','test-IsRegexValid','unwrap-PS','Unwrap-Text','Unwrap-TextN','WordWrap-String','wrap-PS','wrap-Text')
+FunctionsToExport = @('convert-CaesarCipher','_encode','_decode','convertFrom-Base64String','convertFrom-EscapedPSText','convertFrom-Html','Convert-invertCase','convert-Rot13','convert-Rot47','convertTo-Base64String','ConvertTo-CamelCase','convertTo-EscapedPSText','ConvertTo-L33t','ConvertTo-lowerCamelCase','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertTo-StringReverse','convertTo-StudlyCaps','convertTo-TitleCase','create-AcronymFromCaps','get-StringHash','Quote-List','Quote-String','Remove-StringDiacritic','Remove-StringLatinCharacters','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','unwrap-PS','Unwrap-Text','Unwrap-TextN','WordWrap-String','wrap-PS','wrap-Text')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUk5DTkzxAH60owXt2ZNjq8iG6
-# icqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5B+i56NeKRLKr76BkUogSgRp
+# P2qgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTFZVv6
-# bxkPi9uLILwlZzgvT70XxTANBgkqhkiG9w0BAQEFAASBgGCgZ2fI4Ks/gUvermIR
-# y+feUysdulQhEqS6zDn1qZskap35zaehbyPFwxLfheuMYxnwg4xHeqzeyGAsKFyD
-# WEEBtJgr25gzWouaVDIoVuAxnhk8N0gyouRilOopQavO+aI78E9f27lWbJjzM/Y7
-# X04WIDHJcIOMnH1aLOqCNDF7
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR0Bhdr
+# 8tyFNMIuBu595e8H85lGYTANBgkqhkiG9w0BAQEFAASBgFfQ+zpcRxMRVsJNkKjy
+# Vk4Jr0x0MnQnm+tfU8+3Nfuu8e3tFZkw3umBKbP8SQqMz/eISDOwCZv1/1JUieyW
+# PxpS02HYQ38YO/MH6jRnL4WWHP0Ve0LvwTdVkBr+qN3QPnJlbLLco0qw5PLScQY+
+# tzI1cKIv4lSyn1m+/AYzTDM/
 # SIG # End signature block
