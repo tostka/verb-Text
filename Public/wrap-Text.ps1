@@ -18,7 +18,7 @@ Function wrap-Text {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    * 10:48 AM 11/8/2021 updated CBH to modern spec; added param name aliases (standardizing param names); added clipboard check for sText; defaulted nChars to 80
+    * 8:35 PM 11/8/2021 typo'd postion on 2nd param; updated CBH to modern spec; added param name aliases (standardizing param names); added clipboard check for sText; defaulted nChars to 80
     * added CBH
     .DESCRIPTION
     wrap-Text - Wrap a string at specified number of characters
@@ -33,10 +33,10 @@ Function wrap-Text {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Position=0,Mandatory=$false,HelpMessage="Specify string to be wrapped[-sText 'c:\path-to\script.ps1']")]
+        [Parameter(Position=0,,HelpMessage="Specify string to be wrapped[-sText 'c:\path-to\script.ps1']")]
         [Alias('Text','String')]
         [string]$sText, 
-        [Parameter(Position=0,Mandatory=$false,HelpMessage="Number of characters, at which to wrap the string[-nChars 120")]
+        [Parameter(Position=1,HelpMessage="Number of characters, at which to wrap the string[-nChars 120")]
         [Alias('Characters')]
         [int]$nChars=80
     ) 
