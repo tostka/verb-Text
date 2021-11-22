@@ -17,14 +17,16 @@ function convert-Rot13 {
     AddedWebsite:	https://rosettacode.org/wiki/Rot-13#PowerShell
     AddedTwitter:	URL
     REVISIONS
+    * 2:35 PM 11/22/2021 update CBH, this is invertable, so cmdlet name should be convert-Rot13, not to/from. 
     * 6:22 PM 6/18/2021 convert-Rot13:init
     .DESCRIPTION
-    convert-Rot13 - Converts passed string to/from Rot13 
+    convert-Rot13 - Converts passed string to/from Rot13. Run encoded text back through and the origen text is returned
     Replace every letter of the ASCII alphabet with the letter which is "rotated" 13 characters "around" the 26 letter alphabet from its normal cardinal position   (wrapping around from   z   to   a   as necessary). 
+    Rot13 is an invertible algorithm: applying the same algorithm to the input twice will return the origin text. 
     .PARAMETER  string
     String to be converted[-string 'SAMPLEINPUT']
     .EXAMPLE
-    convert-Rot13.ps1 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
+    convert-Rot13 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
     .LINK
     https://github.com/tostka/verb-text
     .LINK

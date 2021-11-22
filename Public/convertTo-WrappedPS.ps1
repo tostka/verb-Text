@@ -1,15 +1,15 @@
-#*------v Function unwrap-PS v------
-Function unwrap-PS {
+#*------v Function convertTo-WrappedPS v------
+Function convertTo-WrappedPS {
     <#
     .SYNOPSIS
-    unwrap-PS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
+    convertTo-WrappedPS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
     CreatedDate : 2021-11-08
-    FileName    : unwrap-PS.ps1
+    FileName    : convertTo-WrappedPS.ps1
     License     : MIT License
     Copyright   : (c) 2020 Todd Kadrie
     Github      : https://github.com/tostka/verb-text
@@ -18,21 +18,26 @@ Function unwrap-PS {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 9:38 AM 11/22/2021 ren wrap-ps -> convertTo-WrappedPS with wrap-ps alias ; added pipeline support
     * 11:09 AM 11/8/2021 init
     .DESCRIPTION
-    unwrap-PS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
+    convertTo-WrappedPS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons)
     .PARAMETER  ScriptBlock
     Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
     .EXAMPLE
-    $text=unwrap-PS -ScriptBlock "write-host 'yea';`ngci 'c:\somefile.txt';" ;
-    Unwrap the specified scriptblock at the semicolons. 
+    $text=convertTo-WrappedPS -ScriptBlock "write-host 'yea'; gci 'c:\somefile.txt';" ;
+    Wrap the specified scriptblock at the semicolons. 
+    .EXAMPLE
+    $text= "write-host 'yea'; gci 'c:\somefile.txt';" | convertTo-WrappedPS ;
+    Pipeline example
     .LINK
     https://github.com/tostka/verb-Text
     #>
     [CmdletBinding()]
-    param(
-        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be unwrapped (sub-out ;`n with ;) [-ScriptBlock 'c:\path-to\script.ps1']")]
+    [Alias('wrap-PS')]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
         [Alias('Code')]
         [string]$ScriptBlock
     )  ; 
@@ -54,9 +59,8 @@ Function unwrap-PS {
     #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
     $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
     # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
-    $splitAt = ";$([Environment]::NewLine)" ; 
-    
-    $replaceWith = ";" ; 
+    $splitAt = ";" ; 
+    $replaceWith = ";$([Environment]::NewLine)" ; 
     # ";`r`n"  ; 
     $ScriptBlock = $ScriptBlock | Foreach-Object {
             $_ -replace $splitAt, $replaceWith ;
@@ -67,4 +71,4 @@ Function unwrap-PS {
     #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
     $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
     $ScriptBlock | write-output ; 
-} ; #*------^ END Function unwrap-PS ^------
+} ; #*------^ END Function convertTo-WrappedPS ^------

@@ -1,4 +1,4 @@
-﻿#*------v Function convert-CaesarCipher v------
+﻿#*------v convert-CaesarCipher.ps1 v------
 function convert-CaesarCipher {
     <#
     .SYNOPSIS
@@ -17,15 +17,16 @@ function convert-CaesarCipher {
     AddedWebsite:	https://rosettacode.org/wiki/Caesar_cipher#PowerShell
     AddedTwitter:	URL
     REVISIONS
+    * 2:13 PM 11/22/2021 made Key & string mandetory params; added range validation on Key
     * 6:22 PM 6/18/2021 convert-CaesarCipher:init
     .DESCRIPTION
-    convert-CaesarCipher - Converts passed string to/from Rot13 
+    convert-CaesarCipher - Converts passed string to/from RotNN where NN is the '-Key' offset of the alphabet
     This cipher rotates (either towards left or right) the letters of the alphabet (A to Z).
-The encoding replaces each letter with the 1st to 25th next letter in the alphabet (wrapping Z to A).
+The encoding replaces each letter with the 1st to `$Key-th letter in the alphabet (wrapping Z to A).
 So key 2 encrypts "HI" to "JK", but key 20 encrypts "HI" to "BC".
 This simple "mono-alphabetic substitution cipher" provides almost no security, because an attacker who has the encoded message can either use frequency analysis to guess the key, or just try all 25 keys.
-Caesar cipher is identical to Vigenère cipher with a key of length 1.
-Also, Rot-13 is identical to Caesar cipher with key 13. 
+Caesar cipher is identical to Vigenère cipher with a Key of length 1.
+Also, Rot-13 is identical to Caesar cipher with Key 13. 
     .PARAMETER  path
     String to be converted[-string 'SAMPLEINPUT']
     .PARAMETER  key
@@ -44,13 +45,15 @@ Integer 'key' [1-25] to be used to encode[-key 2]
     ##[Alias('convertTo-ProperCase')]
     [CmdletBinding()]
     PARAM(
-        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
         [String]$string,
-        [Parameter(Position=1,Mandatory=$false,HelpMessage="Integer 'key' [1-25] to be used to encode[-key 2]")]
+        [Parameter(Position=1,Mandatory=$true,HelpMessage="Integer 'key' [1-25] to be used to encode[-key 2]")]
+        [ValidateRange(1,25)]
         [String]$key,
         [Parameter(Position=1,Mandatory=$false,HelpMessage="Switch to trigger decode function (vs default encode)[-decode]")]
         [switch]$Decode
     ) ;
+    
     BEGIN {
         $LowerAlpha = [char]'a'..[char]'z'
         $UpperAlpha = [char]'A'..[char]'Z'
@@ -95,5 +98,6 @@ Integer 'key' [1-25] to be used to encode[-key 2]
         $OutText | write-output ; 
         $OutText = $null ; 
     } # if-E-PROCESS
-} ; 
-#*------^ END Function convert-CaesarCipher ^------
+}
+
+#*------^ convert-CaesarCipher.ps1 ^------

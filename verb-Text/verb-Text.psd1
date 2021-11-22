@@ -12,7 +12,7 @@
 RootModule = 'verb-Text.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.2.2'
+ModuleVersion = '3.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Generic text-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('convert-CaesarCipher','_encode','_decode','convertFrom-Base64String','convertFrom-EscapedPSText','convertFrom-Html','Convert-invertCase','convert-Rot13','convert-Rot47','convertTo-Base64String','ConvertTo-CamelCase','convertTo-EscapedPSText','ConvertTo-L33t','ConvertTo-lowerCamelCase','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertTo-StringReverse','convertTo-StudlyCaps','convertTo-TitleCase','convertTo-WordsReverse','create-AcronymFromCaps','get-StringHash','Quote-List','Quote-String','Remove-StringDiacritic','Remove-StringLatinCharacters','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','unwrap-PS','Unwrap-Text','Unwrap-TextN','WordWrap-String','wrap-PS','wrap-Text')
+FunctionsToExport = @('convert-CaesarCipher','_encode','_decode','convertFrom-Base64String','convertFrom-EscapedPSText','convertFrom-Html','Convert-invertCase','convert-Rot13','convert-Rot47','convertTo-Base64String','ConvertTo-CamelCase','convertTo-EscapedPSText','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnwrappedPS','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedPS','convertTo-WrappedText','create-AcronymFromCaps','get-StringHash','Remove-StringDiacritic','Remove-StringLatinCharacters','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUbsABxUSlneBcxHPn4RTBeodZ
-# RTCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUS6fKUOie/I8yNB72Ag3G3jUj
+# Qa+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSWgHYP
-# NF5HJ25WaddnVYAdeJkgFDANBgkqhkiG9w0BAQEFAASBgBr9sOUGC9Gk3dlqq+na
-# F0aDJSqgIyFHvlptUIJ+jWR3wXgQ0vBJhunBRCEmPL6xcX9AQvnbtEHcFUTSgj5g
-# kZEooMtjspnrM25rdrcnKJxZK0Zcn94gh6OVfhNrIA2NZCeWytWfgEm3iCQQWwK2
-# vGWbHVVg/Z5+HufRvZSq80jf
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTohhP0
+# 0cIMeMEouO/ACXtMfMputjANBgkqhkiG9w0BAQEFAASBgHdZGikI06aGPNru9zyI
+# UyUPImeXfZWgUUs8o4Yc60LUpdlaz29oOZqfTSb0cglI4Rgd5eoDhgs5qPjhdjFy
+# RyPnOW/KkNHQk/L9JjX33f2TKJOYAlKPOhSh6azHOq59TB57+90sMJa6q6sf3B9x
+# Do+A+HcopOL4i29Bje99YLs7
 # SIG # End signature block

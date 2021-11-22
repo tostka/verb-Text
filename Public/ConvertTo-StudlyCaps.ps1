@@ -1,15 +1,15 @@
-﻿#*------v Function convertTo-StudlyCaps v------
-function convertTo-StudlyCaps {
+﻿#*------v Function convertTo-StUdlycaPs v------
+function convertTo-StUdlycaPs {
     <#
     .SYNOPSIS
-    convertTo-StudlyCaps - Convert passed string to StudlyCaps\CrazyCaps etc (random uppper & lowercase) and return to pipeline
+    convertTo-StUdlycaPs - Convert passed string to StudlyCaps\CrazyCaps etc (random uppper & lowercase) and return to pipeline
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
     CreatedDate : 2021-06-18
-    FileName    : convertTo-StudlyCaps.ps1
+    FileName    : convertTo-StUdlycaPs.ps1
     License     : MIT License
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka
@@ -17,17 +17,17 @@ function convertTo-StudlyCaps {
     AddedWebsite:	
     AddedTwitter:	
     REVISIONS
-    * 6:22 PM 6/18/2021 convertTo-StudlyCaps:init
+    * 6:22 PM 6/18/2021 convertTo-StUdlycaPs:init
     .DESCRIPTION
-    convertTo-StudlyCaps - Convert passed string to Invert Case (upper->lower ; lower -> upper) and return to pipeline
+    convertTo-StUdlycaPs - Convert passed string to Invert Case (upper->lower ; lower -> upper) and return to pipeline
     .PARAMETER  string
     String to be converted[-string 'SAMPLEINPUT']
     .EXAMPLE
-    convertTo-StudlyCaps.ps1 -string 'xxxxx' ; 
+    convertTo-StUdlycaPs.ps1 -string 'xxxxx' ; 
     .LINK
     https://github.com/tostka/verb-text
     #>
-    [Alias('convertTo-StudlyCase','convertTo-CrAzYCaPS')]
+    [Alias('convertTo-StUdlycaSe','convertTo-CrAzYCaPS')]
     [CmdletBinding()]
     PARAM(
         [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
@@ -43,4 +43,4 @@ function convertTo-StudlyCaps {
     } ;
     $output | write-output ; 
 } ; 
-#*------^ END Function convertTo-StudlyCaps ^------
+#*------^ END Function convertTo-StUdlycaPs ^------

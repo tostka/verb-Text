@@ -61,8 +61,7 @@ I hold with those who favor fire.
         [switch]$TextOnly
     )  ; 
     $rgxNonText = "[^a-zA-Z0-9 ]" ; 
-    write-host " " 
-    write-verbose "lines:`n$($lines)" ;
+   write-verbose "lines:`n$($lines)" ;
     if( ($lines.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) | measure).count -gt 1){
         write-verbose "(splitting multi-line block into array of lines)" ;
         # block with line returns, split it into an array for processing

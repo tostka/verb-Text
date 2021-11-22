@@ -2,7 +2,7 @@
     function get-StringHash {
         <#
         .SYNOPSIS
-        VERB-NOUN.ps1 - 1LINEDESC
+        get-StringHash.ps1 - Convert specifed string to designated Cryptographic Hash string (SHA1|SHA256|SHA384|SHA512|MACTripleDES|MD5|RIPEMD160)
         .NOTES
         Version     : 1.0.0
         Author      : Todd Kadrie
@@ -17,12 +17,13 @@
         AddedCredit : Bryan Dady
         AddedWebsite:	https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
         REVISIONS
+        * 11:42 AM 11/22/2021 fixed CBH, missing desc to comply w pester
         * 11:59 AM 4/17/2020 updated CBH, moved from incl-servercore to verb-text
         * 9:46 PM 9/1/2019 updated, added Algorithm param, added pshelp
         * 1/21/11 posted version
         .DESCRIPTION
-        get-StringHash.ps1 - Convert specifed string to designated Cryptographic Hash string
-        hybrid of work by Ivovan & Bryan Dady
+        get-StringHash.ps1 - Convert specifed string to designated Cryptographic Hash string (SHA1|SHA256|SHA384|SHA512|MACTripleDES|MD5|RIPEMD160)
+        Hybrid of work by Ivovan & Bryan Dady
         .PARAMETER  String
         Specify string to be hashed. Accepts from pipeline
         .PARAMETER  Algorithm
@@ -32,7 +33,7 @@
         .LINK
         https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
         #>
-        param (
+        PARAM (
             [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Specify string to be hashed. Accepts from pipeline.')]
             [alias('text', 'InputObject')]
             [ValidateNotNullOrEmpty()]
