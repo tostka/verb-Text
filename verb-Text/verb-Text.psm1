@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 3.0.0.0
+  Version     : 4.0.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -1977,16 +1977,77 @@ Function test-IsRegexValid {
 
 #*------^ test-IsRegexValid.ps1 ^------
 
+#*------v Test-Uri.ps1 v------
+function Test-Uri{
+    <#
+    .SYNOPSIS
+    Test-Uri.ps1 - Validates a given Uri ; localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 20201109-0833AM
+    FileName    : Test-Uri.ps1
+    License     : [none specified]
+    Copyright   : [none specified]
+    Github      : https://github.com/tostka/verb-exo
+    Tags        : Powershell
+    AddedCredit : Microsoft (edited version of published commands in the module)
+    AddedWebsite:	https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
+    REVISIONS
+    * 2:08 PM 12/6/2021 ren'd UriString param to String, and added orig name as alias. Set CBH Output, and broader example; moving into verb-text, where it better fits.
+    * 8:34 AM 11/9/2020 init
+    .DESCRIPTION
+    Test-Uri.ps1 - localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually. Note this only validates https, not http (which will fail). 
+    .PARAMETER String
+    String to be validated
+    .PARAMETER PermitHttp
+    Switch to permit validation of either https or http uri.schemes
+    .INPUTS
+    Accepts pipeline input
+    .OUTPUTS
+    System.Boolean
+    .EXAMPLE
+    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    Stock call
+    .EXAMPLE
+    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    Call that accepts either https or http scheme (default fails http://)
+    .LINK
+    https://github.com/tostka/verb-text
+    .LINK
+    https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    Param(
+        # Uri to be validated
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)]
+        [Alias('UriString')]
+        [string]$String,
+        [Parameter()][switch]$PermitHttp
+    ) ;
+    [Uri]$uri = $String -as [Uri]
+    if($PermitHttp){
+      ($uri.AbsoluteUri -ne $null) -and ($uri.Scheme -eq 'https' -OR $uri.Scheme -eq 'http')
+    } else { 
+      $uri.AbsoluteUri -ne $null -and $uri.Scheme -eq 'https' ;
+    } ; 
+}
+
+#*------^ Test-Uri.ps1 ^------
+
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid -Alias *
+Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUKJ5IoZhGcEZ9u86ZxDYIkff7
-# g3mgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUzrJOKGjO5M1/UgK3gkuFbesG
+# edugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2001,9 +2062,9 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRi9Tfc
-# RpIYbj9Lcp/yMUw0KKYMDDANBgkqhkiG9w0BAQEFAASBgFETX6eeysHaF5MIAVPF
-# pf910owBsAAzj/Fo0czqg2TuxjlbWqW9h8WVQDe+AOaY+tT70BgMFkx+qNoHY6DC
-# 0+/DAEiEyOCzPfmv0kvah22iVRwYD0BpqsYpu48zMmDxcb3LKJfC/Uz9hHV6AzkS
-# 7g9M8tURFzWBn0gQgvcWd8js
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT7mFMl
+# 3EB7wJs0DnkEXlY7x9cthDANBgkqhkiG9w0BAQEFAASBgIoVXMDdVp7g15PJGKue
+# DZ3JxXYkAYy2zM+vFAL4OrmTwRb4jOfEVrszN5rh8a5x1dCW9QwTWZm/WUJWa4lg
+# sslvGZmX6KPo6y+KFQ/OFXZHuEUdLulQUScJIMCBY3dzZt1RvMedQ8nDE8iWE/vp
+# bS6hltBo4uP+SHtC9k+8pSnG
 # SIG # End signature block
