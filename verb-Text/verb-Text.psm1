@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 4.0.0.0
+  Version     : 4.1.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -30,6 +30,77 @@ $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:
 #*======v FUNCTIONS v======
 
 
+
+#*------v compare-CodeRevision.ps1 v------
+function compare-CodeRevision {
+    <#
+    .SYNOPSIS
+    compare-CodeRevisionrevision - Wrapper for Compare-Object to compare two revisions of a given text block of code,. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-01-10
+    FileName    : compare-CodeRevision.ps1
+    License     : MIT License
+    Copyright   : (c) 2021 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Development,ChangeTracking
+    AddedCredit : PaulChavez
+    AddedWebsite:	https://groups.google.com/g/microsoft.public.windows.powershell/c/0zoV5ekugXY
+    AddedTwitter:	URL
+    REVISIONS
+    * 12:36 PM 1/10/2022 compare-CodeRevision:init
+    .DESCRIPTION
+    compare-CodeRevisionrevision - Wrapper for Compare-Object to compare two revisions of a given text block of code,. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    .PARAMETER  Reference
+    Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]
+    .PARAMETER  Difference
+    Code to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]
+    .PARAMETER  NoLineNumbers
+    Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]
+    .EXAMPLE
+    $mod = 'verb-exo' ; 
+    $ref = (gc "\\tsclient\c\sc\$mod\$mod\$mod.psm1")  ;
+    $rev = (gc (gmo $mod).path)  ;
+    $diff = Compare-CodeRevision $ref $rev ; 
+    Compare local (updated) module code agaisnt reference dev source (via tsclient rdp path)
+    .LINK
+    https://github.com/tostka/verb-text
+    .LINK
+    https://gist.github.com/chillitom/8335042
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]")]
+        [ValidateNotNullOrEmpty()]
+        $Reference,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Code to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]")]
+        [ValidateNotNullOrEmpty()]
+        $Difference,
+        [Parameter(Mandatory=$false,HelpMessage="Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]")]
+        [switch]$NoLineNumbers
+    ) ;
+    if(-not $NoLineNumbers){
+        $smsg = "(adding line#'s...)" ; 
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+        else{ write-verbose "$($smsg)" } ;
+        $Reference = $Reference | %{$i = 1} { new-object psobject -prop @{LineNum=$i;Text=$_}; $i++} ;
+        $Difference = $Difference | %{$i = 1} { new-object psobject -prop @{LineNum=$i;Text=$_}; $i++} ;
+        $pltCO=[ordered]@{Reference = $Reference ;Difference = $Difference ;Property = 'Text' ;PassThru = $true ;} ;
+    } else {
+        $pltCO=[ordered]@{Reference = $Reference ;Difference = $Difference ; PassThru = $true ;} ;
+    } ;  
+     
+    $smsg = "Compare-Object w`n$(($pltCO|out-string).trim())" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+    else{ write-verbose "$($smsg)" } ;
+    $diff = Compare-Object @pltCO ; 
+    $diff | write-output ; 
+}
+
+#*------^ compare-CodeRevision.ps1 ^------
 
 #*------v convert-CaesarCipher.ps1 v------
 function convert-CaesarCipher {
@@ -2040,14 +2111,14 @@ function Test-Uri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUzrJOKGjO5M1/UgK3gkuFbesG
-# edugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUMuLERSqkuIBH/n+axDs4GxhQ
+# ZMygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2062,9 +2133,9 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT7mFMl
-# 3EB7wJs0DnkEXlY7x9cthDANBgkqhkiG9w0BAQEFAASBgIoVXMDdVp7g15PJGKue
-# DZ3JxXYkAYy2zM+vFAL4OrmTwRb4jOfEVrszN5rh8a5x1dCW9QwTWZm/WUJWa4lg
-# sslvGZmX6KPo6y+KFQ/OFXZHuEUdLulQUScJIMCBY3dzZt1RvMedQ8nDE8iWE/vp
-# bS6hltBo4uP+SHtC9k+8pSnG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSg66Ub
+# VJzG5IHZ0eLjg1pucH1OBTANBgkqhkiG9w0BAQEFAASBgAt5ErVQ2qVRQ8Il2EPu
+# GPXFaxlWFwAetcnrDYe11XO3wenptUnugOLWc3XtPQ8YjJqk9yaGuNTN75JvcPBR
+# /SjxcZ0oGLSLTHwkTWhPG+DssRW1T3i7lfgHBbCvd7R9I8Mqm7S7UhnRtn427Cnb
+# qXXzliYOP/GPST0QQ8h3g0OM
 # SIG # End signature block

@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 1.4.0.0
+  Version     : 4.0.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -50,15 +50,16 @@ function convert-CaesarCipher {
     AddedWebsite:	https://rosettacode.org/wiki/Caesar_cipher#PowerShell
     AddedTwitter:	URL
     REVISIONS
+    * 2:13 PM 11/22/2021 made Key & string mandetory params; added range validation on Key
     * 6:22 PM 6/18/2021 convert-CaesarCipher:init
     .DESCRIPTION
-    convert-CaesarCipher - Converts passed string to/from Rot13 
+    convert-CaesarCipher - Converts passed string to/from RotNN where NN is the '-Key' offset of the alphabet
     This cipher rotates (either towards left or right) the letters of the alphabet (A to Z).
-The encoding replaces each letter with the 1st to 25th next letter in the alphabet (wrapping Z to A).
+The encoding replaces each letter with the 1st to `$Key-th letter in the alphabet (wrapping Z to A).
 So key 2 encrypts "HI" to "JK", but key 20 encrypts "HI" to "BC".
 This simple "mono-alphabetic substitution cipher" provides almost no security, because an attacker who has the encoded message can either use frequency analysis to guess the key, or just try all 25 keys.
-Caesar cipher is identical to Vigenère cipher with a key of length 1.
-Also, Rot-13 is identical to Caesar cipher with key 13. 
+Caesar cipher is identical to Vigenère cipher with a Key of length 1.
+Also, Rot-13 is identical to Caesar cipher with Key 13. 
     .PARAMETER  path
     String to be converted[-string 'SAMPLEINPUT']
     .PARAMETER  key
@@ -77,13 +78,15 @@ Integer 'key' [1-25] to be used to encode[-key 2]
     ##[Alias('convertTo-ProperCase')]
     [CmdletBinding()]
     PARAM(
-        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
         [String]$string,
-        [Parameter(Position=1,Mandatory=$false,HelpMessage="Integer 'key' [1-25] to be used to encode[-key 2]")]
+        [Parameter(Position=1,Mandatory=$true,HelpMessage="Integer 'key' [1-25] to be used to encode[-key 2]")]
+        [ValidateRange(1,25)]
         [String]$key,
         [Parameter(Position=1,Mandatory=$false,HelpMessage="Switch to trigger decode function (vs default encode)[-decode]")]
         [switch]$Decode
     ) ;
+    
     BEGIN {
         $LowerAlpha = [char]'a'..[char]'z'
         $UpperAlpha = [char]'A'..[char]'Z'
@@ -422,14 +425,16 @@ function convert-Rot13 {
     AddedWebsite:	https://rosettacode.org/wiki/Rot-13#PowerShell
     AddedTwitter:	URL
     REVISIONS
+    * 2:35 PM 11/22/2021 update CBH, this is invertable, so cmdlet name should be convert-Rot13, not to/from. 
     * 6:22 PM 6/18/2021 convert-Rot13:init
     .DESCRIPTION
-    convert-Rot13 - Converts passed string to/from Rot13 
+    convert-Rot13 - Converts passed string to/from Rot13. Run encoded text back through and the origen text is returned
     Replace every letter of the ASCII alphabet with the letter which is "rotated" 13 characters "around" the 26 letter alphabet from its normal cardinal position   (wrapping around from   z   to   a   as necessary). 
+    Rot13 is an invertible algorithm: applying the same algorithm to the input twice will return the origin text. 
     .PARAMETER  string
     String to be converted[-string 'SAMPLEINPUT']
     .EXAMPLE
-    convert-Rot13.ps1 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
+    convert-Rot13 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
     .LINK
     https://github.com/tostka/verb-text
     .LINK
@@ -449,7 +454,7 @@ function convert-Rot13 {
 function convert-Rot47 {
     <#
     .SYNOPSIS
-    convert-Rot47 - Converts passed string to/from Rot47
+    convert-Rot47 - Converts passed string to/from Rot47. Run encoded text back through and the origen text is returned
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -464,23 +469,25 @@ function convert-Rot47 {
     AddedWebsite:	https://gist.github.com/chillitom/8335042
     AddedTwitter:	URL
     REVISIONS
+    * 2:35 PM 11/22/2021 update CBH, this is invertable, so cmdlet name should be convert-Rot13, not to/from. 
     * 6:22 PM 6/18/2021 convert-Rot47:init
     .DESCRIPTION
-    convert-Rot47 - Converts passed string to/from Rot13 
-    Replace every letter of the ASCII alphabet with the letter which is "rotated" 13 characters "around" the 26 letter alphabet from its normal cardinal position   (wrapping around from   z   to   a   as necessary). 
+    convert-Rot47 - Converts passed string to/from Rot47 
+    Replaces a character within the ASCII range [33, 126] with the character 47 character after it (rotation) in the ASCII table.
+    Rot47 is an invertible algorithm: applying the same algorithm to the input twice will return the origin text. 
     .PARAMETER  path
     String to be converted[-string 'SAMPLEINPUT']
     .EXAMPLE
-    convert-Rot47.ps1 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
+    convert-Rot47 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
     .LINK
     https://github.com/tostka/verb-text
     .LINK
     https://gist.github.com/chillitom/8335042
     #>
-    ##[Alias('convertTo-ProperCase')]
     [CmdletBinding()]
     PARAM(
         [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
+        [Alias('in')]
         [String]$string
     ) ;
     $table = @{} ; 
@@ -490,7 +497,7 @@ function convert-Rot47 {
             "PQRSTUVWXYZ[\]^_``abcdefghijklmnopqrstuvwxyz{|}~!`"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNO"[$i]) ; 
     } ; 
     $out = New-Object System.Text.StringBuilder ;
-    $in.ToCharArray() | %{
+    $string.ToCharArray() | %{
         $char = if ($table.ContainsKey($_)) {$table[$_]} else {$_} ; 
         $out.Append($char) | Out-Null ; 
     } ; 
@@ -777,6 +784,47 @@ function ConvertTo-lowerCamelCase {
 
 #*------^ ConvertTo-lowerCamelCase.ps1 ^------
 
+#*------v convertTo-QuotedList.ps1 v------
+Function convertTo-QuotedList {
+    <#
+    .SYNOPSIS
+    Quote-List.ps1 - wrap list with quotes
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : Quote-List.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS
+    * 1:16 PM 11/22/2021 added presplit to lines; upgraded to adv function; ren'd quote-list -> convertTo-QuotedList ; made actually functional (wasn't, was a half-finished copy of quote-text)
+    * 8:27 PM 5/23/2014
+    .DESCRIPTION
+    convertTo-QuotedList.ps1 - wrap list with quotes
+    .LINK
+    #>
+    [CmdletBinding()]
+    [Alias('quote-list')]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be quote-wrapped[-PARAM SAMPLEINPUT]")]
+        [string]$List
+    ) ;
+    write-verbose "lines:`n$($lines)" ;
+    if( ($List.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) | measure).count -gt 1){
+        write-verbose "(splitting multi-line block into array of lines)" ;
+        $List = $List.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;  
+    } ; 
+    $List |foreach-object {
+         "`"$($PSItem)`""  ; 
+    } ; 
+}
+
+#*------^ convertTo-QuotedList.ps1 ^------
+
 #*------v ConvertTo-SCase.ps1 v------
 function ConvertTo-SCase {
     <#
@@ -874,6 +922,40 @@ function ConvertTo-SNAKE_CASE {
 
 #*------^ ConvertTo-SNAKE_CASE.ps1 ^------
 
+#*------v ConvertTo-StringQuoted.ps1 v------
+Function ConvertTo-StringQuoted {
+    <#
+    .SYNOPSIS
+    ConvertTo-StringQuoted.ps1 - Wrap argument with quotes
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : ConvertTo-StringQuoted.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka
+    Tags        : Powershell,Text
+    REVISIONS
+    * 9:22 AM 11/22/2021 updated to pipeline support, fixed non-func; flipped name quote-string-> ConvertTo-StringQuoted, with quote-string alias; added example to pass pester
+    * 8:27 PM 5/23/2014 
+    .DESCRIPTION
+    ConvertTo-StringQuoted.ps1 - rap argument with quotes
+    .EXAMPLE
+    Mr. Watson, Come Here! | ConvertTo-StringQuoted
+    .LINK
+    #>
+    [CmdletBinding()]
+    [Alias('quote-string')]
+    PARAM([Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be quote-wrapped[-PARAM SAMPLEINPUT]")][string]$String
+    ) ;
+    "`"$($String)`"" | write-output ; 
+}
+
+#*------^ ConvertTo-StringQuoted.ps1 ^------
+
 #*------v convertTo-StringReverse.ps1 v------
 function convertTo-StringReverse {
     <#
@@ -916,18 +998,18 @@ function convertTo-StringReverse {
 
 #*------^ convertTo-StringReverse.ps1 ^------
 
-#*------v ConvertTo-StudlyCaps.ps1 v------
-function convertTo-StudlyCaps {
+#*------v convertTo-StUdlycaPs.ps1 v------
+function convertTo-StUdlycaPs {
     <#
     .SYNOPSIS
-    convertTo-StudlyCaps - Convert passed string to StudlyCaps\CrazyCaps etc (random uppper & lowercase) and return to pipeline
+    convertTo-StUdlycaPs - Convert passed string to StudlyCaps\CrazyCaps etc (random uppper & lowercase) and return to pipeline
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
     CreatedDate : 2021-06-18
-    FileName    : convertTo-StudlyCaps.ps1
+    FileName    : convertTo-StUdlycaPs.ps1
     License     : MIT License
     Copyright   : (c) 2019 Todd Kadrie
     Github      : https://github.com/tostka
@@ -935,17 +1017,17 @@ function convertTo-StudlyCaps {
     AddedWebsite:	
     AddedTwitter:	
     REVISIONS
-    * 6:22 PM 6/18/2021 convertTo-StudlyCaps:init
+    * 6:22 PM 6/18/2021 convertTo-StUdlycaPs:init
     .DESCRIPTION
-    convertTo-StudlyCaps - Convert passed string to Invert Case (upper->lower ; lower -> upper) and return to pipeline
+    convertTo-StUdlycaPs - Convert passed string to Invert Case (upper->lower ; lower -> upper) and return to pipeline
     .PARAMETER  string
     String to be converted[-string 'SAMPLEINPUT']
     .EXAMPLE
-    convertTo-StudlyCaps.ps1 -string 'xxxxx' ; 
+    convertTo-StUdlycaPs.ps1 -string 'xxxxx' ; 
     .LINK
     https://github.com/tostka/verb-text
     #>
-    [Alias('convertTo-StudlyCase','convertTo-CrAzYCaPS')]
+    [Alias('convertTo-StUdlycaSe','convertTo-CrAzYCaPS')]
     [CmdletBinding()]
     PARAM(
         [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
@@ -962,7 +1044,7 @@ function convertTo-StudlyCaps {
     $output | write-output ; 
 }
 
-#*------^ ConvertTo-StudlyCaps.ps1 ^------
+#*------^ convertTo-StUdlycaPs.ps1 ^------
 
 #*------v convertTo-TitleCase.ps1 v------
 function convertTo-TitleCase {
@@ -1006,6 +1088,131 @@ function convertTo-TitleCase {
 }
 
 #*------^ convertTo-TitleCase.ps1 ^------
+
+#*------v convertTo-UnwrappedPS.ps1 v------
+Function convertTo-UnwrappedPS {
+    <#
+    .SYNOPSIS
+    convertTo-UnwrappedPS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-11-08
+    FileName    : convertTo-UnwrappedPS.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 9:38 AM 11/22/2021 ren unwrap-ps -> convertTo-UnwrappedPS 
+    * 11:09 AM 11/8/2021 init
+    .DESCRIPTION
+    convertTo-UnwrappedPS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
+    .PARAMETER  ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
+    .EXAMPLE
+    $text=convertTo-UnwrappedPS -ScriptBlock "write-host 'yea';`ngci 'c:\somefile.txt';" ;
+    Unwrap the specified scriptblock at the semicolons. 
+    .LINK
+    https://github.com/tostka/verb-Text
+    #>
+    [CmdletBinding()]
+    [Alias('unwrap-PS')]
+    param(
+        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be unwrapped (sub-out ;`n with ;) [-ScriptBlock 'c:\path-to\script.ps1']")]
+        [Alias('Code')]
+        [string]$ScriptBlock
+    )  ; 
+    if(-not $ScriptBlock){
+        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($ScriptBlock){
+            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "ScriptBlock:$($ScriptBlock)" ;
+    } ;
+    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
+    # to escape them, have to dbl: $password.Replace('$', $$')
+    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
+    # rgx replace all special chars, to make them literals, before doing any -replace (graveaccent escape ea)
+    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
+    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
+    # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
+    $splitAt = ";$([Environment]::NewLine)" ; 
+    
+    $replaceWith = ";" ; 
+    # ";`r`n"  ; 
+    $ScriptBlock = $ScriptBlock | Foreach-Object {
+            $_ -replace $splitAt, $replaceWith ;
+    } ; 
+    # then put the $'s back (stays dbld):
+    #$ScriptBlock = $ScriptBlock.Replace('$$', '$')
+    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
+    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
+    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
+    $ScriptBlock | write-output ; 
+}
+
+#*------^ convertTo-UnwrappedPS.ps1 ^------
+
+#*------v convertTo-UnWrappedText.ps1 v------
+Function convertTo-UnWrappedText {
+    <#
+    .SYNOPSIS
+    convertTo-UnWrappedText
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2020-04-17
+    FileName    : convertTo-UnWrappedText
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    REVISIONS   :
+    * 9:34 AM 11/22/2021 swapped out hard-coded crlf, with os agnostic method (& purged unwrap-textN `n-targeting variant); made adv func ; ren'd unwrap-text -> convertTo-UnWrappedText, with unwrap-text alias; ren'd param to Text, w sText alias
+    * 8:41 AM 4/12/2015, make it drop into the pipeline instead of return
+    .DESCRIPTION
+    convertTo-UnWrappedText
+    .PARAMETER  sText
+    Text to be unwrapped
+    .INPUTS
+    Accepts piped input.
+    .OUTPUTS
+    Outputs unwrapped text to pipeline
+    .EXAMPLE
+    get-fortune | convertTo-UnWrappedText | speak-words
+    Get a fortune, unwrap the text, and text-to-speech the words
+    .EXAMPLE
+    convertTo-UnWrappedText $x ;
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()]
+    [Alias('unwrap-text','Unwrap-TextN')]
+    PARAM(
+        [Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelinebyPropertyName = $True, HelpMessage = 'Text to be unwrapped')]
+        [Alias('sText')]
+        [string]$Text
+    )    
+    Foreach ($sTxt in $Text) {
+        $sTxt0 = $sTxt.replace(([Environment]::NewLine)," ");
+        return $sTxtO;
+    } 
+}
+
+#*------^ convertTo-UnWrappedText.ps1 ^------
 
 #*------v convertTo-WordsReverse.ps1 v------
 Function convertTo-WordsReverse {
@@ -1070,8 +1277,7 @@ I hold with those who favor fire.
         [switch]$TextOnly
     )  ; 
     $rgxNonText = "[^a-zA-Z0-9 ]" ; 
-    write-host " " 
-    write-verbose "lines:`n$($lines)" ;
+   write-verbose "lines:`n$($lines)" ;
     if( ($lines.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) | measure).count -gt 1){
         write-verbose "(splitting multi-line block into array of lines)" ;
         # block with line returns, split it into an array for processing
@@ -1118,6 +1324,182 @@ I hold with those who favor fire.
 }
 
 #*------^ convertTo-WordsReverse.ps1 ^------
+
+#*------v convertTo-WrappedPS.ps1 v------
+Function convertTo-WrappedPS {
+    <#
+    .SYNOPSIS
+    convertTo-WrappedPS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-11-08
+    FileName    : convertTo-WrappedPS.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 9:38 AM 11/22/2021 ren wrap-ps -> convertTo-WrappedPS with wrap-ps alias ; added pipeline support
+    * 11:09 AM 11/8/2021 init
+    .DESCRIPTION
+    convertTo-WrappedPS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons)
+    .PARAMETER  ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
+    .EXAMPLE
+    $text=convertTo-WrappedPS -ScriptBlock "write-host 'yea'; gci 'c:\somefile.txt';" ;
+    Wrap the specified scriptblock at the semicolons. 
+    .EXAMPLE
+    $text= "write-host 'yea'; gci 'c:\somefile.txt';" | convertTo-WrappedPS ;
+    Pipeline example
+    .LINK
+    https://github.com/tostka/verb-Text
+    #>
+    [CmdletBinding()]
+    [Alias('wrap-PS')]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="ScriptBlock
+    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
+        [Alias('Code')]
+        [string]$ScriptBlock
+    )  ; 
+    if(-not $ScriptBlock){
+        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($ScriptBlock){
+            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "ScriptBlock:$($ScriptBlock)" ;
+    } ;
+    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
+    # to escape them, have to dbl: $password.Replace('$', $$')
+    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
+    # rgx replace all special chars, to make them literals, before doing any -replace (graveaccent escape ea)
+    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
+    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
+    # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
+    $splitAt = ";" ; 
+    $replaceWith = ";$([Environment]::NewLine)" ; 
+    # ";`r`n"  ; 
+    $ScriptBlock = $ScriptBlock | Foreach-Object {
+            $_ -replace $splitAt, $replaceWith ;
+    } ; 
+    # then put the $'s back (stays dbld):
+    #$ScriptBlock = $ScriptBlock.Replace('$$', '$')
+    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
+    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
+    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
+    $ScriptBlock | write-output ; 
+}
+
+#*------^ convertTo-WrappedPS.ps1 ^------
+
+#*------v convertTo-WrappedText.ps1 v------
+Function convertTo-WrappedText {
+    <#
+    .SYNOPSIS
+    convertTo-WrappedText - Wrap a string at specified number of characters
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-11-08
+    FileName    : convertTo-WrappedText.ps1
+    License     : MIT License
+    Copyright   : (c) 2020 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text
+    AddedCredit : REFERENCE
+    AddedWebsite:	URL
+    AddedTwitter:	URL
+    REVISIONS
+    * 9:32 AM 11/22/2021 ren'd wrap-text -> convertTo-WrappedText, w wrap-text alias; added pipeline support ; spliced over -chars 'window' support from wordwrap-string.ps1 (and retired the variant); pulled strong type on $chars, shifted nchars name to an alias, and renamed it Characters; renamed $sText to $Text and shifted sText to an alias; added $host.name checking for 'Window' use
+    * 8:35 PM 11/8/2021 typo'd postion on 2nd param; updated CBH to modern spec; added param name aliases (standardizing param names); added clipboard check for sText; defaulted nChars to 80
+    * added CBH
+    .DESCRIPTION
+    convertTo-WrappedText - Wrap a string at specified number of characters
+    .PARAMETER  Text
+    String to be wrapped[-Text 'Four score and seven years ago']
+    .PARAMETER  Characters
+[int]Character number to wrap at, or 'WINDOW' to indicate wrap should be performed at width of current window[-Wrap 'WINDOW']
+    .EXAMPLE
+    $text=convertTo-WrappedText -sText "Please send issues to technisbetas@gmail.com, putting them in the reviews doesn't help me find fix them" -nChars 30 ;
+    .LINK
+    https://github.com/tostka/verb-Text
+    #>
+    [CmdletBinding()]
+    [Alias('wrap-text')]
+    param(
+        [Parameter(Position=0,Mandatory=$True,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be wrapped[-Text 'Four score and seven years ago']")]
+        [Alias('String','sText')]
+        [string]$Text, 
+        #[Parameter(Position=1,HelpMessage="Number of characters, at which to wrap the string[-nChars 120")]
+        [Parameter(Position = 1, Mandatory = $True, HelpMessage = "[int]Character number to wrap at, or 'WINDOW' to indicate wrap should be performed at width of current window[-Wrap 'WINDOW']")][ValidateNotNullOrEmpty()]
+        [Alias('nChars')]
+        #[int]
+        $Characters=80
+    ) 
+    
+    switch ($Characters.GetType().FullName){
+        'System.String' {
+            if ($Characters.ToUpper() -eq "WINDOW") {
+                switch ($host.name){
+                    'ConsoleHost' {
+                        [int]$Characters = (get-host).ui.rawui.windowsize.width ; 
+                        write-verbose "wrapping to WINDOW -Characters:$($Characters)" ; 
+                    }
+                    default {
+                        write-verbose "$($host.name):-Characters:$($Characters)`n$($Text.length) chars long" ;
+                        throw "$($host.name) is not a supported host for this script with the -Characters 'Window' option`nPlease use an interger number instead" ;
+                    } ; 
+                } ; 
+            } else {
+                Throw "Unrecognized -Characters string (Please use an integer, or the word 'Window')" ;
+            } ;
+        } 
+        'System.Int32' {
+            write-verbose "wrapping to -Characters:$($Characters)" ; 
+        } ;
+        default {
+            Throw "Unrecognized -Characters spec (Please use an integer number, or the word 'Window')" ; 
+        } 
+    } ; 
+    
+    if(-not $Text){
+        $Text= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($Text){
+            write-verbose "No -Text specified, detected text on clipboard:`n$($Text)" ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "Text:$($Text)" ;
+    } ;
+    
+    $words = $Text.split(" ");
+    $sPad = $sTextO = "";
+    foreach ($word in $words) {
+        if (($sPad + " " + $word).length -gt $Characters) {
+            $sTextO = $sTextO + $sPad + [Environment]::Newline ;
+            $sPad = $word ;
+        }
+        else {$sPad = $sPad + " " + $word  } ;
+    }  ;
+    if ($sPad.length -ne 0) {$sTextO = $sTextO + $sPad };
+    $sTextO | write-output ; 
+}
+
+#*------^ convertTo-WrappedText.ps1 ^------
 
 #*------v create-AcronymFromCaps.ps1 v------
 Function create-AcronymFromCaps {
@@ -1188,7 +1570,7 @@ Function create-AcronymFromCaps {
 function get-StringHash {
         <#
         .SYNOPSIS
-        VERB-NOUN.ps1 - 1LINEDESC
+        get-StringHash.ps1 - Convert specifed string to designated Cryptographic Hash string (SHA1|SHA256|SHA384|SHA512|MACTripleDES|MD5|RIPEMD160)
         .NOTES
         Version     : 1.0.0
         Author      : Todd Kadrie
@@ -1203,12 +1585,13 @@ function get-StringHash {
         AddedCredit : Bryan Dady
         AddedWebsite:	https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
         REVISIONS
+        * 11:42 AM 11/22/2021 fixed CBH, missing desc to comply w pester
         * 11:59 AM 4/17/2020 updated CBH, moved from incl-servercore to verb-text
         * 9:46 PM 9/1/2019 updated, added Algorithm param, added pshelp
         * 1/21/11 posted version
         .DESCRIPTION
-        get-StringHash.ps1 - Convert specifed string to designated Cryptographic Hash string
-        hybrid of work by Ivovan & Bryan Dady
+        get-StringHash.ps1 - Convert specifed string to designated Cryptographic Hash string (SHA1|SHA256|SHA384|SHA512|MACTripleDES|MD5|RIPEMD160)
+        Hybrid of work by Ivovan & Bryan Dady
         .PARAMETER  String
         Specify string to be hashed. Accepts from pipeline
         .PARAMETER  Algorithm
@@ -1218,7 +1601,7 @@ function get-StringHash {
         .LINK
         https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
         #>
-        param (
+        PARAM (
             [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Specify string to be hashed. Accepts from pipeline.')]
             [alias('text', 'InputObject')]
             [ValidateNotNullOrEmpty()]
@@ -1242,60 +1625,6 @@ function get-StringHash {
 
 #*------^ get-StringHash.ps1 ^------
 
-#*------v Quote-List.ps1 v------
-Function Quote-List {
-    <#
-    .SYNOPSIS
-    Quote-List.ps1 - wrap list with quotes
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
-    FileName    : Quote-List.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
-    Tags        : Powershell,Text
-    REVISIONS
-    * 8:27 PM 5/23/2014
-    .DESCRIPTION
-    Quote-List.ps1 - wrap list with quotes
-    .LINK
-    #>
-    $args 
-}
-
-#*------^ Quote-List.ps1 ^------
-
-#*------v Quote-String.ps1 v------
-Function Quote-String {
-    <#
-    .SYNOPSIS
-    Quote-String.ps1 - Wrap argument with quotes
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
-    FileName    : Quote-String.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
-    Tags        : Powershell,Text
-    REVISIONS
-    * 8:27 PM 5/23/2014
-    .DESCRIPTION
-    Quote-String.ps1 - rap argument with quotes
-    .LINK
-    #>
-    "$args" 
-}
-
-#*------^ Quote-String.ps1 ^------
-
 #*------v Remove-StringDiacritic.ps1 v------
 function Remove-StringDiacritic {
     <#
@@ -1313,6 +1642,7 @@ function Remove-StringDiacritic {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text,String,ForeignLanguage,Language
     REVISIONS
+    * 1:50 PM 11/22/2021 added param pipeline support & hepmessage on params
     * Mar 22, 2019, init
     .DESCRIPTION
     Remove-StringDiacritic() - This function will remove the diacritics (accents) characters from a string.unaccented characters.
@@ -1328,28 +1658,31 @@ function Remove-StringDiacritic {
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
     #>
     [CMdletBinding()]
-    PARAM ([ValidateNotNullOrEmpty()][Alias('Text')]
+    PARAM (
+      [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $true,ValueFromPipelineByPropertyName = $true, HelpMessage = 'Specifies the String(s) on which the diacritics need to be removed')]
+      [ValidateNotNullOrEmpty()][Alias('Text')]
       [System.String[]]$String,
+      [Parameter(HelpMessage = 'optional the normalization form to use (defaults to FormD)')]
       [System.Text.NormalizationForm]$NormalizationForm = "FormD"
     ) ;
-    FOREACH ($StringValue in $String) {
-      Write-Verbose -Message "$StringValue"
-      try {
-          # Normalize the String
-          $Normalized = $StringValue.Normalize($NormalizationForm) ;
-          $NewString = New-Object -TypeName System.Text.StringBuilder
-          # Convert the String to CharArray
-          $normalized.ToCharArray() |
-          ForEach-Object -Process {
-              if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($psitem) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
-                  [void]$NewString.Append($psitem) ;
-              } ;
-          } ;
-          #Combine the new string chars
-          Write-Output $($NewString -as [string]) ;
-      } Catch {
-          Write-Error -Message $Error[0].Exception.Message
-      } ;
+    foreach ($StringValue in $String) {
+        Write-Verbose -Message "$StringValue"
+        try {
+            # Normalize the String
+            $Normalized = $StringValue.Normalize($NormalizationForm) ;
+            $NewString = New-Object -TypeName System.Text.StringBuilder
+            # Convert the String to CharArray
+            $normalized.ToCharArray() |
+            ForEach-Object -Process {
+                if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($psitem) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
+                    [void]$NewString.Append($psitem) ;
+                } ;
+            } ;
+            #Combine the new string chars
+            Write-Output $($NewString -as [string]) ;
+        } Catch {
+            Write-Error -Message $Error[0].Exception.Message
+        } ;
     } ;
 }
 
@@ -1371,8 +1704,8 @@ function Remove-StringLatinCharacters {
     Copyright   : (none-specified)
     Github      : https://github.com/tostka
     Tags        : Powershell,Text,String,ForeignLanguage,Language
-    REVISIONS
     REVISIONS   :
+    * 1:53 PM 11/22/2021 added param pipeline support
     * May 21, 2015 posted version
     .DESCRIPTION
     Remove-StringLatinCharacters() - Substitute Cyrillic characters into normal unaccented characters. Addon to Remove-Stringdiacriic, converts untouched Polish crossed-L to L. But doesn't proper change some german chars (rplcs german est-set with ? -> do Remove-StringDiacritic first, and it won't damage german).
@@ -1385,8 +1718,11 @@ function Remove-StringLatinCharacters {
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
     #>
     [CMdletBinding()]
-    PARAM ([ValidateNotNullOrEmpty()][Alias('Text')]
-      [string]$String
+    PARAM (
+        [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $true,ValueFromPipelineByPropertyName = $true, HelpMessage = 'Specifies the String(s) on which the latin chars need to be removed ')]
+        [ValidateNotNullOrEmpty()]
+        [Alias('Text')]
+        [System.String[]]$String
     ) ;
     [Text.Encoding]::ASCII.GetString([Text.Encoding]::GetEncoding("Cyrillic").GetBytes($String)) ;
 }
@@ -1641,390 +1977,77 @@ Function test-IsRegexValid {
 
 #*------^ test-IsRegexValid.ps1 ^------
 
-#*------v unwrap-PS.ps1 v------
-Function unwrap-PS {
+#*------v Test-Uri.ps1 v------
+function Test-Uri{
     <#
     .SYNOPSIS
-    unwrap-PS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
+    Test-Uri.ps1 - Validates a given Uri ; localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-11-08
-    FileName    : unwrap-PS.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-text
-    Tags        : Powershell,Text
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
+    CreatedDate : 20201109-0833AM
+    FileName    : Test-Uri.ps1
+    License     : [none specified]
+    Copyright   : [none specified]
+    Github      : https://github.com/tostka/verb-exo
+    Tags        : Powershell
+    AddedCredit : Microsoft (edited version of published commands in the module)
+    AddedWebsite:	https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
     REVISIONS
-    * 11:09 AM 11/8/2021 init
+    * 2:08 PM 12/6/2021 ren'd UriString param to String, and added orig name as alias. Set CBH Output, and broader example; moving into verb-text, where it better fits.
+    * 8:34 AM 11/9/2020 init
     .DESCRIPTION
-    unwrap-PS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
-    .PARAMETER  ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
+    Test-Uri.ps1 - localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually. Note this only validates https, not http (which will fail). 
+    .PARAMETER String
+    String to be validated
+    .PARAMETER PermitHttp
+    Switch to permit validation of either https or http uri.schemes
+    .INPUTS
+    Accepts pipeline input
+    .OUTPUTS
+    System.Boolean
     .EXAMPLE
-    $text=unwrap-PS -ScriptBlock "write-host 'yea';`ngci 'c:\somefile.txt';" ;
-    Unwrap the specified scriptblock at the semicolons. 
+    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    Stock call
+    .EXAMPLE
+    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    Call that accepts either https or http scheme (default fails http://)
     .LINK
-    https://github.com/tostka/verb-Text
+    https://github.com/tostka/verb-text
+    .LINK
+    https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
     #>
     [CmdletBinding()]
-    param(
-        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be unwrapped (sub-out ;`n with ;) [-ScriptBlock 'c:\path-to\script.ps1']")]
-        [Alias('Code')]
-        [string]$ScriptBlock
-    )  ; 
-    if(-not $ScriptBlock){
-        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
-        if($ScriptBlock){
-            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
-        } else {
-            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
-            Break ;
-        } ;
-    } else {
-        write-verbose "ScriptBlock:$($ScriptBlock)" ;
-    } ;
-    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
-    # to escape them, have to dbl: $password.Replace('$', $$')
-    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
-    # rgx replace all special chars, to make them literals, before doing any -replace (graveaccent escape ea)
-    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
-    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
-    # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
-    $splitAt = ";$([Environment]::NewLine)" ; 
-    
-    $replaceWith = ";" ; 
-    # ";`r`n"  ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {
-            $_ -replace $splitAt, $replaceWith ;
-    } ; 
-    # then put the $'s back (stays dbld):
-    #$ScriptBlock = $ScriptBlock.Replace('$$', '$')
-    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
-    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
-    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
-    $ScriptBlock | write-output ; 
-}
-
-#*------^ unwrap-PS.ps1 ^------
-
-#*------v unwrap-Text.ps1 v------
-Function Unwrap-Text {
-    <#
-    .SYNOPSIS
-    Unwrap-Text
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
-    FileName    : Unwrap-Text
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
-    Tags        : Powershell,Text
-    REVISIONS   :
-    * 8:41 AM 4/12/2015, make it drop into the pipeline instead of return
-    .DESCRIPTION
-    Unwrap-Text
-    .PARAMETER  sText
-    Text to be unwrapped
-    .INPUTS
-    Accepts piped input.
-    .OUTPUTS
-    Outputs unwrapped text to pipeline
-    .EXAMPLE
-    get-fortune | unwrap-text | speak-words
-    Get a fortune, unwrap the text, and text-to-speech the words
-    .EXAMPLE
-    unwrap-text $x
-    .LINK
-     #>
-    PARAM(
-        [Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelinebyPropertyName = $True, HelpMessage = 'Text to be unwrapped')][string]$sText)
-    BEGIN { } 
-    PROCESS {
-        Foreach ($sTxt in $sText) {
-            $sTxt0 = $sTxt.replace("`r`n", " ");
-            if (($host.version) -eq "2.0") {
-                return $sTxtO;
-            }
-            else {
-                write-output $sTxt0 ;
-            } # if-block end
-        } 
-    }
-}
-
-#*------^ unwrap-Text.ps1 ^------
-
-#*------v unwrap-Textn.ps1 v------
-Function Unwrap-TextN {
-    <#
-    .SYNOPSIS
-    Unwrap-TextN - Unwrap text. This variant just replaces newlines `n, without the carriage return `r
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2020-04-17
-    FileName    : Unwrap-Text
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka
-    Tags        : Powershell,Text
-    REVISIONS   :
-    * 8:41 AM 4/12/2015, make it drop into the pipeline instead of return
-    .DESCRIPTION
-    Unwrap-TextN - Unwrap text. This variant just replaces newlines `n, without the carriage return `r
-    .PARAMETER  sText
-    Text to be unwrapped
-    .INPUTS
-    Accepts piped input.
-    .OUTPUTS
-    Outputs unwrapped text to pipeline
-    .EXAMPLE
-    get-fortune | unwrap-textn | speak-words
-    Get a fortune, unwrap the text, and text-to-speech the words
-    .EXAMPLE
-    unwrap-textn $x
-    .LINK
-     #>
-    PARAM(
-        [Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelinebyPropertyName = $True, HelpMessage = 'What text do you want to unwrap?')][string]$sText)
-    BEGIN { }
-    PROCESS {
-        Foreach ($sTxt in $sText) {
-            $sTxt0 = $sText.replace("`n", " ");
-            if (($host.version) -eq "2.0") {
-                return $sTxtO;
-            }
-            else {
-                write-output $sTxt0 ;
-            } 
-        } 
-    } 
-}
-
-#*------^ unwrap-Textn.ps1 ^------
-
-#*------v WordWrap-String.ps1 v------
-Function WordWrap-String {
-<#
-    .SYNOPSIS
-    WordWrap-String - Word wrap function, return word wrapped version of passed string
-    .NOTES
-    Author: wolfplusplus
-    Website:	http://blog.wolfplusplus.com/?p=260
-    REVISIONS   :
-    9:50 AM 5/1/2014 try to extend it to vari-leng or window
-    9:48 AM 5/1/2014
-    .DESCRIPTION
-    WordWrap-String - Word wrap function, return word wrapped version of passed string
-    .PARAMETER  Str
-    String to be wrapped
-    .PARAMETER  Wrap
-    Specify either the integer character number to perform a wrap at, or specify 'WINDOW', to default the wrap char count to the width of the current window.
-    .INPUTS
-    None
-    .OUTPUTS
-    System.String
-    .EXAMPLE
-    write-host (WordWrap-String $logline 80)
-    .LINK
-    http://blog.wolfplusplus.com/?p=260
-    #>
+    [OutputType([bool])]
     Param(
-        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "String to be wrapped[-str 'string']")][ValidateNotNullOrEmpty()]
-        [string]$Str,
-        [Parameter(Position = 1, Mandatory = $True, HelpMessage = "character number to wrap at, or 'WINDOW' to indicate wrap should be performed at width of current window[-Wrap 'WINDOW']")][ValidateNotNullOrEmpty()]
-        $Wrap
+        # Uri to be validated
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)]
+        [Alias('UriString')]
+        [string]$String,
+        [Parameter()][switch]$PermitHttp
     ) ;
-    if ($Wrap.ToUpper() -eq "WINDOW") {
-        $Wrap = (get-host).ui.rawui.windowsize.width
-    } elseif ($Wrap -is [string]) {
-        write-host -fore yell ("INVALID `$Wrap param: " + $Wrap + "`n Syntax: WordWrap-String [string] [#chars]")
-    }  
-    $sWrapped = ""
-    $curLn = ""
-    # $ split string at spaces, then Loop over the words and write a line out just short $spec'd size
-    foreach ($word in $str.Split(" ")) {
-        # see if adding a word makes string longer then window width
-        $checkLinePlusWord = $curLn + " " + $word
-        if ($checkLinePlusWord.length -gt $Wrap) {
-            # With the new word, over width `n before next word
-            $sWrapped += [Environment]::Newline
-            $curLn = ""
-        }
-        # Append word to current line and final str
-        $curLn += $word + " "
-        $sWrapped += $word + " "
-    } 
-    return $sWrapped
-}
-
-#*------^ WordWrap-String.ps1 ^------
-
-#*------v wrap-PS.ps1 v------
-Function wrap-PS {
-    <#
-    .SYNOPSIS
-    wrap-PS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-11-08
-    FileName    : wrap-PS.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-text
-    Tags        : Powershell,Text
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
-    REVISIONS
-    * 11:09 AM 11/8/2021 init
-    .DESCRIPTION
-    wrap-PS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons)
-    .PARAMETER  ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
-    .EXAMPLE
-    $text=wrap-PS -ScriptBlock "write-host 'yea'; gci 'c:\somefile.txt';" ;
-    Wrap the specified scriptblock at the semicolons. 
-    .LINK
-    https://github.com/tostka/verb-Text
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
-        [Alias('Code')]
-        [string]$ScriptBlock
-    )  ; 
-    if(-not $ScriptBlock){
-        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
-        if($ScriptBlock){
-            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
-        } else {
-            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
-            Break ;
-        } ;
-    } else {
-        write-verbose "ScriptBlock:$($ScriptBlock)" ;
-    } ;
-    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
-    # to escape them, have to dbl: $password.Replace('$', $$')
-    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
-    # rgx replace all special chars, to make them literals, before doing any -replace (graveaccent escape ea)
-    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
-    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
-    # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
-    $splitAt = ";" ; 
-    $replaceWith = ";$([Environment]::NewLine)" ; 
-    # ";`r`n"  ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {
-            $_ -replace $splitAt, $replaceWith ;
+    [Uri]$uri = $String -as [Uri]
+    if($PermitHttp){
+      ($uri.AbsoluteUri -ne $null) -and ($uri.Scheme -eq 'https' -OR $uri.Scheme -eq 'http')
+    } else { 
+      $uri.AbsoluteUri -ne $null -and $uri.Scheme -eq 'https' ;
     } ; 
-    # then put the $'s back (stays dbld):
-    #$ScriptBlock = $ScriptBlock.Replace('$$', '$')
-    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
-    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
-    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
-    $ScriptBlock | write-output ; 
 }
 
-#*------^ wrap-PS.ps1 ^------
-
-#*------v wrap-Text.ps1 v------
-Function wrap-Text {
-    <#
-    .SYNOPSIS
-    wrap-Text - Wrap a string at specified number of characters
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-11-08
-    FileName    : wrap-Text.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-text
-    Tags        : Powershell,Text
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
-    REVISIONS
-    * 8:35 PM 11/8/2021 typo'd postion on 2nd param; updated CBH to modern spec; added param name aliases (standardizing param names); added clipboard check for sText; defaulted nChars to 80
-    * added CBH
-    .DESCRIPTION
-    wrap-Text - Wrap a string at specified number of characters
-    .PARAMETER  sText
-    Specify string to be wrapped
-    .PARAMETER  nChars
-    Number of characters, at which to wrap the string
-    .EXAMPLE
-    $text=wrap-Text -sText "Please send issues to technisbetas@gmail.com, putting them in the reviews doesn't help me find fix them" -nChars 30 ;
-    .LINK
-    https://github.com/tostka/verb-Text
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Position=0,HelpMessage="Specify string to be wrapped[-sText 'c:\path-to\script.ps1']")]
-        [Alias('Text','String')]
-        [string]$sText, 
-        [Parameter(Position=1,HelpMessage="Number of characters, at which to wrap the string[-nChars 120")]
-        [Alias('Characters')]
-        [int]$nChars=80
-    ) 
-    if(-not $sText){
-        $sText= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
-        if($sText){
-            write-verbose "No -sText specified, detected text on clipboard:`n$($sText)" ;
-        } else {
-            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
-            Break ;
-        } ;
-    } else {
-        write-verbose "sText:$($sText)" ;
-    } ;
-    
-    $words = $sText.split(" ");
-    $sPad = "";
-    $sTextO = "";
-    foreach ($word in $words) {
-        if (($sPad + " " + $word).length -gt $nChars) {
-            $sTextO = $sTextO + $sPad + "`n"  ;
-            $sPad = $word ;
-        }
-        else {$sPad = $sPad + " " + $word  } ;
-    }  ;
-    if ($sPad.length -ne 0) {$sTextO = $sTextO + $sPad };
-    $sTextO | write-output ; 
-}
-
-#*------^ wrap-Text.ps1 ^------
+#*------^ Test-Uri.ps1 ^------
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertTo-StringReverse,convertTo-StudlyCaps,convertTo-TitleCase,convertTo-WordsReverse,create-AcronymFromCaps,get-StringHash,Quote-List,Quote-String,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,unwrap-PS,Unwrap-Text,Unwrap-TextN,WordWrap-String,wrap-PS,wrap-Text -Alias *
+Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUUhC/zmj4GMrDd2sBhiWuGUn7
-# YiigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUzrJOKGjO5M1/UgK3gkuFbesG
+# edugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2039,9 +2062,9 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQCQXzg
-# sZq+pgHzfuPsMkxRbakI/zANBgkqhkiG9w0BAQEFAASBgEblAxOXu/s6LXj94DNb
-# gKQbCLKd11epCCNhpaEG/EObEJMwMMGOtWAN8AsZkKjkcnh4A7ZSo6usvBJ+RrfQ
-# zHzW6bW+eTDzW/Hyjhxs8TJXg/qlxgaaKImf2fX4hD4wHLGNjQTv8z7G50fk0lfX
-# CNLoZOdt5HKW6mA2LMK7bdmV
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT7mFMl
+# 3EB7wJs0DnkEXlY7x9cthDANBgkqhkiG9w0BAQEFAASBgIoVXMDdVp7g15PJGKue
+# DZ3JxXYkAYy2zM+vFAL4OrmTwRb4jOfEVrszN5rh8a5x1dCW9QwTWZm/WUJWa4lg
+# sslvGZmX6KPo6y+KFQ/OFXZHuEUdLulQUScJIMCBY3dzZt1RvMedQ8nDE8iWE/vp
+# bS6hltBo4uP+SHtC9k+8pSnG
 # SIG # End signature block
