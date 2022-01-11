@@ -1,11 +1,11 @@
-# verb-text.psm1
+# verb-Text.psm1
 
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 4.0.0.0
+  Version     : 4.1.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -35,7 +35,7 @@ $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:
 function compare-CodeRevision {
     <#
     .SYNOPSIS
-    compare-CodeRevisionrevision - Wrapper for Compare-Object to compare two revisions of a given text block of code,. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    compare-CodeRevision - Wrapper for Compare-Object to compare two revisions of a given text block of code. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -51,13 +51,16 @@ function compare-CodeRevision {
     AddedWebsite:	https://groups.google.com/g/microsoft.public.windows.powershell/c/0zoV5ekugXY
     AddedTwitter:	URL
     REVISIONS
+    * 8:04 AM 1/11/2022 minor CBH update
     * 12:36 PM 1/10/2022 compare-CodeRevision:init
     .DESCRIPTION
-    compare-CodeRevisionrevision - Wrapper for Compare-Object to compare two revisions of a given text block of code,. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    compare-CodeRevision - Wrapper for Compare-Object to compare two revisions of a given text block of code. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    
+    Yea, [Git's](https://git-scm.com/) a *much* better choice for revision tracking - *if* you've been doing all editing in your *project directory*. But if you're doing debugging on a remote admin box, fixing the odd bug *on the fly*, by editing-and-'ipmo -force'ing the live installed module .psm1 copy, sometimes you just want to diff the *revised*/newly-functional *local* copy, across the network against your last commited source copy, to see how many changes you actually added (and which functions need to be duped back to your source, for git tracking/build). 
     .PARAMETER  Reference
     Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]
     .PARAMETER  Difference
-    Code to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]
+    Code block to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]
     .PARAMETER  NoLineNumbers
     Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]
     .EXAMPLE
@@ -65,18 +68,18 @@ function compare-CodeRevision {
     $ref = (gc "\\tsclient\c\sc\$mod\$mod\$mod.psm1")  ;
     $rev = (gc (gmo $mod).path)  ;
     $diff = Compare-CodeRevision $ref $rev ; 
-    Compare local (updated) module code agaisnt reference dev source (via tsclient rdp path)
-    .LINK
-    https://github.com/tostka/verb-text
+    Compare local (updated) module code agaisnt reference dev source (via automatic RDP client pathing)
     .LINK
     https://gist.github.com/chillitom/8335042
+    .LINK
+    https://github.com/tostka/verb-text
     #>
     [CmdletBinding()]
     PARAM(
         [Parameter(Position=0,Mandatory=$True,HelpMessage="Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]")]
         [ValidateNotNullOrEmpty()]
         $Reference,
-        [Parameter(Position=1,Mandatory=$True,HelpMessage="Code to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]")]
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Code block to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]")]
         [ValidateNotNullOrEmpty()]
         $Difference,
         [Parameter(Mandatory=$false,HelpMessage="Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]")]

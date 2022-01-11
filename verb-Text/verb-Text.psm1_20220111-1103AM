@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 2.0.0.0
+  Version     : 4.1.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -31,6 +31,77 @@ $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:
 
 
 
+#*------v compare-CodeRevision.ps1 v------
+function compare-CodeRevision {
+    <#
+    .SYNOPSIS
+    compare-CodeRevisionrevision - Wrapper for Compare-Object to compare two revisions of a given text block of code,. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-01-10
+    FileName    : compare-CodeRevision.ps1
+    License     : MIT License
+    Copyright   : (c) 2021 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Development,ChangeTracking
+    AddedCredit : PaulChavez
+    AddedWebsite:	https://groups.google.com/g/microsoft.public.windows.powershell/c/0zoV5ekugXY
+    AddedTwitter:	URL
+    REVISIONS
+    * 12:36 PM 1/10/2022 compare-CodeRevision:init
+    .DESCRIPTION
+    compare-CodeRevisionrevision - Wrapper for Compare-Object to compare two revisions of a given text block of code,. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    .PARAMETER  Reference
+    Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]
+    .PARAMETER  Difference
+    Code to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]
+    .PARAMETER  NoLineNumbers
+    Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]
+    .EXAMPLE
+    $mod = 'verb-exo' ; 
+    $ref = (gc "\\tsclient\c\sc\$mod\$mod\$mod.psm1")  ;
+    $rev = (gc (gmo $mod).path)  ;
+    $diff = Compare-CodeRevision $ref $rev ; 
+    Compare local (updated) module code agaisnt reference dev source (via tsclient rdp path)
+    .LINK
+    https://github.com/tostka/verb-text
+    .LINK
+    https://gist.github.com/chillitom/8335042
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]")]
+        [ValidateNotNullOrEmpty()]
+        $Reference,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Code to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]")]
+        [ValidateNotNullOrEmpty()]
+        $Difference,
+        [Parameter(Mandatory=$false,HelpMessage="Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]")]
+        [switch]$NoLineNumbers
+    ) ;
+    if(-not $NoLineNumbers){
+        $smsg = "(adding line#'s...)" ; 
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+        else{ write-verbose "$($smsg)" } ;
+        $Reference = $Reference | %{$i = 1} { new-object psobject -prop @{LineNum=$i;Text=$_}; $i++} ;
+        $Difference = $Difference | %{$i = 1} { new-object psobject -prop @{LineNum=$i;Text=$_}; $i++} ;
+        $pltCO=[ordered]@{Reference = $Reference ;Difference = $Difference ;Property = 'Text' ;PassThru = $true ;} ;
+    } else {
+        $pltCO=[ordered]@{Reference = $Reference ;Difference = $Difference ; PassThru = $true ;} ;
+    } ;  
+     
+    $smsg = "Compare-Object w`n$(($pltCO|out-string).trim())" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+    else{ write-verbose "$($smsg)" } ;
+    $diff = Compare-Object @pltCO ; 
+    $diff | write-output ; 
+}
+
+#*------^ compare-CodeRevision.ps1 ^------
+
 #*------v convert-CaesarCipher.ps1 v------
 function convert-CaesarCipher {
     <#
@@ -50,15 +121,16 @@ function convert-CaesarCipher {
     AddedWebsite:	https://rosettacode.org/wiki/Caesar_cipher#PowerShell
     AddedTwitter:	URL
     REVISIONS
+    * 2:13 PM 11/22/2021 made Key & string mandetory params; added range validation on Key
     * 6:22 PM 6/18/2021 convert-CaesarCipher:init
     .DESCRIPTION
-    convert-CaesarCipher - Converts passed string to/from Rot13 
+    convert-CaesarCipher - Converts passed string to/from RotNN where NN is the '-Key' offset of the alphabet
     This cipher rotates (either towards left or right) the letters of the alphabet (A to Z).
-The encoding replaces each letter with the 1st to 25th next letter in the alphabet (wrapping Z to A).
+The encoding replaces each letter with the 1st to `$Key-th letter in the alphabet (wrapping Z to A).
 So key 2 encrypts "HI" to "JK", but key 20 encrypts "HI" to "BC".
 This simple "mono-alphabetic substitution cipher" provides almost no security, because an attacker who has the encoded message can either use frequency analysis to guess the key, or just try all 25 keys.
-Caesar cipher is identical to Vigenère cipher with a key of length 1.
-Also, Rot-13 is identical to Caesar cipher with key 13. 
+Caesar cipher is identical to Vigenère cipher with a Key of length 1.
+Also, Rot-13 is identical to Caesar cipher with Key 13. 
     .PARAMETER  path
     String to be converted[-string 'SAMPLEINPUT']
     .PARAMETER  key
@@ -77,13 +149,15 @@ Integer 'key' [1-25] to be used to encode[-key 2]
     ##[Alias('convertTo-ProperCase')]
     [CmdletBinding()]
     PARAM(
-        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
+        [Parameter(Position=0,Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
         [String]$string,
-        [Parameter(Position=1,Mandatory=$false,HelpMessage="Integer 'key' [1-25] to be used to encode[-key 2]")]
+        [Parameter(Position=1,Mandatory=$true,HelpMessage="Integer 'key' [1-25] to be used to encode[-key 2]")]
+        [ValidateRange(1,25)]
         [String]$key,
         [Parameter(Position=1,Mandatory=$false,HelpMessage="Switch to trigger decode function (vs default encode)[-decode]")]
         [switch]$Decode
     ) ;
+    
     BEGIN {
         $LowerAlpha = [char]'a'..[char]'z'
         $UpperAlpha = [char]'A'..[char]'Z'
@@ -403,6 +477,106 @@ function Convert-invertCase {
 
 #*------^ Convert-invertCase.ps1 ^------
 
+#*------v convert-Rot13.ps1 v------
+function convert-Rot13 {
+    <#
+    .SYNOPSIS
+    convert-Rot13 - Converts passed string to/from Rot13 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-06-18
+    FileName    : convert-Rot13.ps1
+    License     : MIT License
+    Copyright   : (c) 2019 Todd Kadrie
+    Github      : https://github.com/tostka
+    AddedCredit : rosettacode.org
+    AddedWebsite:	https://rosettacode.org/wiki/Rot-13#PowerShell
+    AddedTwitter:	URL
+    REVISIONS
+    * 2:35 PM 11/22/2021 update CBH, this is invertable, so cmdlet name should be convert-Rot13, not to/from. 
+    * 6:22 PM 6/18/2021 convert-Rot13:init
+    .DESCRIPTION
+    convert-Rot13 - Converts passed string to/from Rot13. Run encoded text back through and the origen text is returned
+    Replace every letter of the ASCII alphabet with the letter which is "rotated" 13 characters "around" the 26 letter alphabet from its normal cardinal position   (wrapping around from   z   to   a   as necessary). 
+    Rot13 is an invertible algorithm: applying the same algorithm to the input twice will return the origin text. 
+    .PARAMETER  string
+    String to be converted[-string 'SAMPLEINPUT']
+    .EXAMPLE
+    convert-Rot13 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
+    .LINK
+    https://github.com/tostka/verb-text
+    .LINK
+    https://rosettacode.org/wiki/Rot-13#PowerShell
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
+        [String]$string
+    ) ;
+    [char[]](0..64+78..90+65..77+91..96+110..122+97..109+123..255)[[char[]]$string] -join "" | write-output ; 
+}
+
+#*------^ convert-Rot13.ps1 ^------
+
+#*------v convert-Rot47.ps1 v------
+function convert-Rot47 {
+    <#
+    .SYNOPSIS
+    convert-Rot47 - Converts passed string to/from Rot47. Run encoded text back through and the origen text is returned
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2021-06-18
+    FileName    : convert-Rot47.ps1
+    License     : (none asserted)
+    Copyright   : (none asserted)
+    Github      : https://github.com/tostka/verb-text
+    AddedCredit : ChilliTom
+    AddedWebsite:	https://gist.github.com/chillitom/8335042
+    AddedTwitter:	URL
+    REVISIONS
+    * 2:35 PM 11/22/2021 update CBH, this is invertable, so cmdlet name should be convert-Rot13, not to/from. 
+    * 6:22 PM 6/18/2021 convert-Rot47:init
+    .DESCRIPTION
+    convert-Rot47 - Converts passed string to/from Rot47 
+    Replaces a character within the ASCII range [33, 126] with the character 47 character after it (rotation) in the ASCII table.
+    Rot47 is an invertible algorithm: applying the same algorithm to the input twice will return the origin text. 
+    .PARAMETER  path
+    String to be converted[-string 'SAMPLEINPUT']
+    .EXAMPLE
+    convert-Rot47 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
+    .LINK
+    https://github.com/tostka/verb-text
+    .LINK
+    https://gist.github.com/chillitom/8335042
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
+        [Alias('in')]
+        [String]$string
+    ) ;
+    $table = @{} ; 
+    for ($i = 0; $i -lt 94; $i++) {
+        $table.Add(
+            "!`"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_``abcdefghijklmnopqrstuvwxyz{|}~"[$i],
+            "PQRSTUVWXYZ[\]^_``abcdefghijklmnopqrstuvwxyz{|}~!`"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNO"[$i]) ; 
+    } ; 
+    $out = New-Object System.Text.StringBuilder ;
+    $string.ToCharArray() | %{
+        $char = if ($table.ContainsKey($_)) {$table[$_]} else {$_} ; 
+        $out.Append($char) | Out-Null ; 
+    } ; 
+    $out.ToString() | write-output ; 
+}
+
+#*------^ convert-Rot47.ps1 ^------
+
 #*------v convertTo-Base64String.ps1 v------
 function convertTo-Base64String {
     <#
@@ -721,105 +895,6 @@ Function convertTo-QuotedList {
 }
 
 #*------^ convertTo-QuotedList.ps1 ^------
-
-#*------v convertTo-Rot13.ps1 v------
-function convertTo-Rot13 {
-    <#
-    .SYNOPSIS
-    convertTo-Rot13 - Converts passed string to/from Rot13 
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-06-18
-    FileName    : convertTo-Rot13.ps1
-    License     : MIT License
-    Copyright   : (c) 2019 Todd Kadrie
-    Github      : https://github.com/tostka
-    AddedCredit : rosettacode.org
-    AddedWebsite:	https://rosettacode.org/wiki/Rot-13#PowerShell
-    AddedTwitter:	URL
-    REVISIONS
-    * 1:18 PM 11/22/2021 ren convert-Rot13 -> convertTo-Rot13.
-    * 6:22 PM 6/18/2021 convert-Rot13:init
-    .DESCRIPTION
-    convertTo-Rot13 - Converts passed string to/from Rot13 
-    Replace every letter of the ASCII alphabet with the letter which is "rotated" 13 characters "around" the 26 letter alphabet from its normal cardinal position   (wrapping around from   z   to   a   as necessary). 
-    .PARAMETER  string
-    String to be converted[-string 'SAMPLEINPUT']
-    .EXAMPLE
-    convertTo-Rot13 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
-    .LINK
-    https://github.com/tostka/verb-text
-    .LINK
-    https://rosettacode.org/wiki/Rot-13#PowerShell
-    #>
-    [CmdletBinding()]
-    [Alias('convert-Rot13')]
-    PARAM(
-        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
-        [String]$string
-    ) ;
-    [char[]](0..64+78..90+65..77+91..96+110..122+97..109+123..255)[[char[]]$string] -join "" | write-output ; 
-}
-
-#*------^ convertTo-Rot13.ps1 ^------
-
-#*------v convertTo-Rot47.ps1 v------
-function convertTo-Rot47 {
-    <#
-    .SYNOPSIS
-    convertTo-Rot47 - Converts passed string to/from Rot47
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-06-18
-    FileName    : convertTo-Rot47.ps1
-    License     : (none asserted)
-    Copyright   : (none asserted)
-    Github      : https://github.com/tostka/verb-text
-    AddedCredit : ChilliTom
-    AddedWebsite:	https://gist.github.com/chillitom/8335042
-    AddedTwitter:	URL
-    REVISIONS
-    * 1:18 PM 11/22/2021 ren convert-Rot13 -> convertTo-Rot47.
-    * 6:22 PM 6/18/2021 convert-Rot47:init
-    .DESCRIPTION
-    convertTo-Rot47 - Converts passed string to/from Rot13 
-    Replace every letter of the ASCII alphabet with the letter which is "rotated" 13 characters "around" the 26 letter alphabet from its normal cardinal position   (wrapping around from   z   to   a   as necessary). 
-    .PARAMETER  path
-    String to be converted[-string 'SAMPLEINPUT']
-    .EXAMPLE
-    convertTo-Rot47 -string 'YOU can convert a string to title case (every word start with a capital letter).' ; 
-    .LINK
-    https://github.com/tostka/verb-text
-    .LINK
-    https://gist.github.com/chillitom/8335042
-    #>
-    [CmdletBinding()]
-    [Alias('convert-Rot47')]
-    PARAM(
-        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted[-string 'SAMPLEINPUT']")]
-        [String]$string
-    ) ;
-    $table = @{} ; 
-    for ($i = 0; $i -lt 94; $i++) {
-        $table.Add(
-            "!`"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_``abcdefghijklmnopqrstuvwxyz{|}~"[$i],
-            "PQRSTUVWXYZ[\]^_``abcdefghijklmnopqrstuvwxyz{|}~!`"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNO"[$i]) ; 
-    } ; 
-    $out = New-Object System.Text.StringBuilder ;
-    $in.ToCharArray() | %{
-        $char = if ($table.ContainsKey($_)) {$table[$_]} else {$_} ; 
-        $out.Append($char) | Out-Null ; 
-    } ; 
-    $out.ToString() | write-output ; 
-}
-
-#*------^ convertTo-Rot47.ps1 ^------
 
 #*------v ConvertTo-SCase.ps1 v------
 function ConvertTo-SCase {
@@ -1973,16 +2048,77 @@ Function test-IsRegexValid {
 
 #*------^ test-IsRegexValid.ps1 ^------
 
+#*------v Test-Uri.ps1 v------
+function Test-Uri{
+    <#
+    .SYNOPSIS
+    Test-Uri.ps1 - Validates a given Uri ; localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 20201109-0833AM
+    FileName    : Test-Uri.ps1
+    License     : [none specified]
+    Copyright   : [none specified]
+    Github      : https://github.com/tostka/verb-exo
+    Tags        : Powershell
+    AddedCredit : Microsoft (edited version of published commands in the module)
+    AddedWebsite:	https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
+    REVISIONS
+    * 2:08 PM 12/6/2021 ren'd UriString param to String, and added orig name as alias. Set CBH Output, and broader example; moving into verb-text, where it better fits.
+    * 8:34 AM 11/9/2020 init
+    .DESCRIPTION
+    Test-Uri.ps1 - localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually. Note this only validates https, not http (which will fail). 
+    .PARAMETER String
+    String to be validated
+    .PARAMETER PermitHttp
+    Switch to permit validation of either https or http uri.schemes
+    .INPUTS
+    Accepts pipeline input
+    .OUTPUTS
+    System.Boolean
+    .EXAMPLE
+    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    Stock call
+    .EXAMPLE
+    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    Call that accepts either https or http scheme (default fails http://)
+    .LINK
+    https://github.com/tostka/verb-text
+    .LINK
+    https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    Param(
+        # Uri to be validated
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)]
+        [Alias('UriString')]
+        [string]$String,
+        [Parameter()][switch]$PermitHttp
+    ) ;
+    [Uri]$uri = $String -as [Uri]
+    if($PermitHttp){
+      ($uri.AbsoluteUri -ne $null) -and ($uri.Scheme -eq 'https' -OR $uri.Scheme -eq 'http')
+    } else { 
+      $uri.AbsoluteUri -ne $null -and $uri.Scheme -eq 'https' ;
+    } ; 
+}
+
+#*------^ Test-Uri.ps1 ^------
+
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,convertTo-Rot13,convertTo-Rot47,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU6ghsty+GGy7AVn+Id+OMM8H6
-# 6AagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUMuLERSqkuIBH/n+axDs4GxhQ
+# ZMygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -1997,9 +2133,9 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRFH0og
-# DgTp0293qnWJWTsbtrb6FzANBgkqhkiG9w0BAQEFAASBgFd0nPj0TooNdxplyWdp
-# boK3WA1HzZ15A3k+D463efEAHeXgOtZfTAUBf9vKRTomHtg+ndvHSE+fBjInthdz
-# 1N/hALxVIN6zR9ptna1Y38uUI398amQrFimWTHGj2sK8tcylMbaWD0hSWd5rOd7H
-# z/AfU8W9ZpSnch5RbXfiUJs7
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSg66Ub
+# VJzG5IHZ0eLjg1pucH1OBTANBgkqhkiG9w0BAQEFAASBgAt5ErVQ2qVRQ8Il2EPu
+# GPXFaxlWFwAetcnrDYe11XO3wenptUnugOLWc3XtPQ8YjJqk9yaGuNTN75JvcPBR
+# /SjxcZ0oGLSLTHwkTWhPG+DssRW1T3i7lfgHBbCvd7R9I8Mqm7S7UhnRtn427Cnb
+# qXXzliYOP/GPST0QQ8h3g0OM
 # SIG # End signature block
