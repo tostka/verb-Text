@@ -1,4 +1,4 @@
-#*------v Function convertTo-EscapedPSText v------
+#*------v convertTo-EscapedPSText.ps1 v------
 Function convertTo-EscapedPSText {
     <#
     .SYNOPSIS
@@ -18,6 +18,7 @@ Function convertTo-EscapedPSText {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 2:10 PM 3/1/2022 updated the ScriptBlock param to string-array [string[]], preserves the multi-line nature of original text (otherwise, ps coerces arrays into single-element strings)
     * 11:09 AM 11/8/2021 init
     .DESCRIPTION
     convertTo-EscapedPSText - convert a scriptblock of Powershell code text, to an esaped equivelent - specifically backtick-escape all special characters [$*\~;(%?.:@/]. 
@@ -42,7 +43,7 @@ Function convertTo-EscapedPSText {
         [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
     Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
         [Alias('Code')]
-        [string]$ScriptBlock
+        [string[]]$ScriptBlock
     )  ; 
     if(-not $ScriptBlock){
         $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
@@ -61,4 +62,6 @@ Function convertTo-EscapedPSText {
     # rgx replace all special chars, to make them literals, before doing the replace (graveaccent escape ea matched char in the [$*\~;(%?.:@/] range)
     $ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
     $ScriptBlock | write-output ; 
-} ; #*------^ END Function convertTo-EscapedPSText ^------
+}
+
+#*------^ convertTo-EscapedPSText.ps1 ^------
