@@ -1,11 +1,11 @@
-﻿# verb-text.psm1
+﻿# verb-Text.psm1
 
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 3.0.0.0
+  Version     : 4.2.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -30,6 +30,80 @@ $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:
 #*======v FUNCTIONS v======
 
 
+
+#*------v compare-CodeRevision.ps1 v------
+function compare-CodeRevision {
+    <#
+    .SYNOPSIS
+    compare-CodeRevision - Wrapper for Compare-Object to compare two revisions of a given text block of code. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-01-10
+    FileName    : compare-CodeRevision.ps1
+    License     : MIT License
+    Copyright   : (c) 2021 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Development,ChangeTracking
+    AddedCredit : PaulChavez
+    AddedWebsite:	https://groups.google.com/g/microsoft.public.windows.powershell/c/0zoV5ekugXY
+    AddedTwitter:	URL
+    REVISIONS
+    * 8:04 AM 1/11/2022 minor CBH update
+    * 12:36 PM 1/10/2022 compare-CodeRevision:init
+    .DESCRIPTION
+    compare-CodeRevision - Wrapper for Compare-Object to compare two revisions of a given text block of code. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    
+    Yea, [Git's](https://git-scm.com/) a *much* better choice for revision tracking - *if* you've been doing all editing in your *project directory*. But if you're doing debugging on a remote admin box, fixing the odd bug *on the fly*, by editing-and-'ipmo -force'ing the live installed module .psm1 copy, sometimes you just want to diff the *revised*/newly-functional *local* copy, across the network against your last commited source copy, to see how many changes you actually added (and which functions need to be duped back to your source, for git tracking/build). 
+    .PARAMETER  Reference
+    Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]
+    .PARAMETER  Difference
+    Code block to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]
+    .PARAMETER  NoLineNumbers
+    Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]
+    .EXAMPLE
+    $mod = 'verb-exo' ; 
+    $ref = (gc "\\tsclient\c\sc\$mod\$mod\$mod.psm1")  ;
+    $rev = (gc (gmo $mod).path)  ;
+    $diff = Compare-CodeRevision $ref $rev ; 
+    Compare local (updated) module code agaisnt reference dev source (via automatic RDP client pathing)
+    .LINK
+    https://gist.github.com/chillitom/8335042
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]")]
+        [ValidateNotNullOrEmpty()]
+        $Reference,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Code block to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]")]
+        [ValidateNotNullOrEmpty()]
+        $Difference,
+        [Parameter(Mandatory=$false,HelpMessage="Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]")]
+        [switch]$NoLineNumbers
+    ) ;
+    if(-not $NoLineNumbers){
+        $smsg = "(adding line#'s...)" ; 
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+        else{ write-verbose "$($smsg)" } ;
+        $Reference = $Reference | %{$i = 1} { new-object psobject -prop @{LineNum=$i;Text=$_}; $i++} ;
+        $Difference = $Difference | %{$i = 1} { new-object psobject -prop @{LineNum=$i;Text=$_}; $i++} ;
+        $pltCO=[ordered]@{Reference = $Reference ;Difference = $Difference ;Property = 'Text' ;PassThru = $true ;} ;
+    } else {
+        $pltCO=[ordered]@{Reference = $Reference ;Difference = $Difference ; PassThru = $true ;} ;
+    } ;  
+     
+    $smsg = "Compare-Object w`n$(($pltCO|out-string).trim())" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+    else{ write-verbose "$($smsg)" } ;
+    $diff = Compare-Object @pltCO ; 
+    $diff | write-output ; 
+}
+
+#*------^ compare-CodeRevision.ps1 ^------
 
 #*------v convert-CaesarCipher.ps1 v------
 function convert-CaesarCipher {
@@ -1977,16 +2051,77 @@ Function test-IsRegexValid {
 
 #*------^ test-IsRegexValid.ps1 ^------
 
+#*------v Test-Uri.ps1 v------
+function Test-Uri{
+    <#
+    .SYNOPSIS
+    Test-Uri.ps1 - Validates a given Uri ; localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 20201109-0833AM
+    FileName    : Test-Uri.ps1
+    License     : [none specified]
+    Copyright   : [none specified]
+    Github      : https://github.com/tostka/verb-exo
+    Tags        : Powershell
+    AddedCredit : Microsoft (edited version of published commands in the module)
+    AddedWebsite:	https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
+    REVISIONS
+    * 2:08 PM 12/6/2021 ren'd UriString param to String, and added orig name as alias. Set CBH Output, and broader example; moving into verb-text, where it better fits.
+    * 8:34 AM 11/9/2020 init
+    .DESCRIPTION
+    Test-Uri.ps1 - localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually. Note this only validates https, not http (which will fail). 
+    .PARAMETER String
+    String to be validated
+    .PARAMETER PermitHttp
+    Switch to permit validation of either https or http uri.schemes
+    .INPUTS
+    Accepts pipeline input
+    .OUTPUTS
+    System.Boolean
+    .EXAMPLE
+    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    Stock call
+    .EXAMPLE
+    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    Call that accepts either https or http scheme (default fails http://)
+    .LINK
+    https://github.com/tostka/verb-text
+    .LINK
+    https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    Param(
+        # Uri to be validated
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)]
+        [Alias('UriString')]
+        [string]$String,
+        [Parameter()][switch]$PermitHttp
+    ) ;
+    [Uri]$uri = $String -as [Uri]
+    if($PermitHttp){
+      ($uri.AbsoluteUri -ne $null) -and ($uri.Scheme -eq 'https' -OR $uri.Scheme -eq 'http')
+    } else { 
+      $uri.AbsoluteUri -ne $null -and $uri.Scheme -eq 'https' ;
+    } ; 
+}
+
+#*------^ Test-Uri.ps1 ^------
+
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUKJ5IoZhGcEZ9u86ZxDYIkff7
-# g3mgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUIx2Lpz/oDODiKewnwjL+BIj1
+# SvqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2001,9 +2136,9 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRi9Tfc
-# RpIYbj9Lcp/yMUw0KKYMDDANBgkqhkiG9w0BAQEFAASBgFETX6eeysHaF5MIAVPF
-# pf910owBsAAzj/Fo0czqg2TuxjlbWqW9h8WVQDe+AOaY+tT70BgMFkx+qNoHY6DC
-# 0+/DAEiEyOCzPfmv0kvah22iVRwYD0BpqsYpu48zMmDxcb3LKJfC/Uz9hHV6AzkS
-# 7g9M8tURFzWBn0gQgvcWd8js
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBToRwtH
+# O5WtRsvaTJhm+8W3xrWqMTANBgkqhkiG9w0BAQEFAASBgCDxAEzicdv6Xohhhb59
+# 2OYaeIpdxl7KHkHabY4Eq/jfYP6jKE4aPOqcygjdYqtJr55/wdg+BJ86arnm6YHo
+# cvzjq+LzVAFtZOk89kQ9I7q1OS0Ic+nrWjzEwVQUSS3Nl4yTSk3X/4z9mbUDKN1a
+# WR1lLypC4i9QHxarpdlSXzN7
 # SIG # End signature block
