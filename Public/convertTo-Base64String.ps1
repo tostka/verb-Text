@@ -2,7 +2,7 @@
 function convertTo-Base64String {
     <#
     .SYNOPSIS
-    convertTo-Base64String - Convert specified string or Path-to-file to Base64 encoded string and return to pipeline. If -String resolves to a path, it will be treated as a -path parameter (file content converted to Base64 encoded string). 
+    convertTo-Base64String - Convert specified string or Path-to-file to Base64 encoded string and return to pipeline. If -String resolves to a path, it will be treated as a -SourceFile parameter (file content converted to Base64 encoded string). 
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -17,16 +17,21 @@ function convertTo-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 3:58 PM 4/20/2022 Work in progress, was adding file 'sourcefile/targetfile' support, untested, I believe I had issues with the conversion, b64 wouldn't convert cleanly back to original (as part of the encoding for the invoke-soundcue bundled ping updates).
     * 10:27 AM 9/16/2021 updated CBH, set -string as position 0, flipped pipeline to string from path, removed typo $file test, pre-resolve-path any string, and if it resolves to a file, load the file for conversion. Shift path validation into the body. 
     * 8:26 AM 12/13/2019 convertTo-Base64String:init
     .DESCRIPTION
     convertTo-Base64String - Convert specified string or Path-to-file to Base64 encoded string and return to pipeline. If String resolves to a path, it will be treated as a -path parameter (file content converted to Base64 encoded string). 
-    .PARAMETER  path
-    File to be Base64 encoded (image, text, whatever)[-path path-to-file]
+    .PARAMETER  SourceFile
+    File to be Base64 encoded (image, text, whatever)[-SourceFile path-to-file]
     .PARAMETER  string
     String to be Base64 encoded [-string 'string to be encoded']
     .EXAMPLE
-    PS> convertTo-Base64String -path C:\Path\To\Image.png >> base64.txt ; 
+    PS> convertTo-Base64String -SourceFile C:\Path\To\Image.png > base64.txt ; 
+    Example converting a png file to base64 and outputing result to text using redirection
+    .EXAMPLE
+    PS> convertto-base64string -sourcefile 'c:\path-to\some.jpg' -targetfile c:\tmp\b64.txt -verbose
+    Example converting a jpg file to a base64-encoded text file leveraging the -targetfile parameter, and with verbose output 
     .EXAMPLE
     PS> convertTo-Base64String -string "my *very* minimally obfuscated info"
     .EXAMPLE
@@ -36,20 +41,61 @@ function convertTo-Base64String {
     #>
     [CmdletBinding(DefaultParameterSetName='File')]
     PARAM(
-        [Parameter(ParameterSetName='File',HelpMessage="File to be Base64 encoded (image, text, whatever)[-path path-to-file]")]
-        #[Alias('ALIAS1', 'ALIAS2')]
-        #[ValidateScript({Test-Path $_})]
-        [String]$path,
-        [Parameter(ParameterSetName='String',Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="string to be converted[-string 'string to be encoded']")]
-        [String]$string
+        [Parameter(Position=0,ValueFromPipeline=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
+        [String]$string,
+        [Parameter(HelpMessage="Optional param that designates path from which to read a file to be Base64 encoded[-SourceFile 'c:\path-to\base64.txt']")]
+        [string]$SourceFile,
+        [Parameter(HelpMessage="Optional param that designates path into which to write the encoded Base64 content [-TargetPath 'c:\path-to\file.png']")]
+        [string]$TargetFile
     ) ;
-    if($path -OR ($path = $string| Resolve-Path -ea 0)){
-        if(test-path $path){
-          write-verbose "(loading specified/resolved path:$($path))" ; 
-          $String = (get-content $path -encoding byte) ; 
-        } else { throw "Unable to load specified -path:`n$($path))" } ; 
-    } 
-    [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String)) | write-output ; 
-    
+    $error.clear() ;
+    TRY {
+        if($SourceFile -OR ($SourceFile = $string| Resolve-Path -ea 0)){
+            if(test-path $SourceFile){
+                write-verbose "(loading specified/resolved SourceFile:$($SourceFile))" ; 
+                <# Get-Content without -raw splits the file into an array of lines thus destroying the code
+                # Text.Encoding interprets the binary code as text thus destroying the code
+                # Out-File is for text data, not binary code
+                #>
+                #$String = (get-content $SourceFile -encoding byte) ; 
+                #$String = [Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile))
+                # direct convert 1-liner bin2b64
+                if(-not $TargetFile){
+                    write-verbose "returning output to pipeline" ;
+                    $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile))
+                    $base64string | write-output ; 
+                } else {
+                    write-verbose "writing output to specified:$($TargetFile)..." ; 
+                        $folder = Split-Path $TargetFile ; 
+                        if(-not(Test-Path $folder)){
+                            New-Item $folder -ItemType Directory | Out-Null ; 
+                        } ; 
+                        #Set-Content -Path $TargetFile -Value $Content #-Encoding Byte ;
+                        #[IO.File]::WriteAllBytes($TargetFile, [Convert]::FromBase64String($String ))
+                        [IO.File]::WriteAllBytes($TargetFile,[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile))) ; ; 
+                }; 
+                
+            } else { throw "Unable to load specified -SourceFile:`n$($SourceFile))" } ; 
+        } else { 
+            $String = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String)) ;
+        } ; 
+        if(-not $TargetFile){
+            write-verbose "returning output to pipeline" ;
+            $String | write-output ; 
+        } else {
+            write-verbose "writing output to specified:$($TargetFile)..." ; 
+                $folder = Split-Path $TargetFile ; 
+                if(-not(Test-Path $folder)){
+                    New-Item $folder -ItemType Directory | Out-Null ; 
+                } ; 
+                Set-Content -Path $TargetFile -Value $Content #-Encoding Byte ;
+                #[IO.File]::WriteAllBytes($TargetFile, [Convert]::FromBase64String($String ))
+        }; 
+    } CATCH {
+        $ErrTrapd=$Error[0] ;
+        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    } ; 
 } ; 
 #*------^ END Function convertTo-Base64String ^------
