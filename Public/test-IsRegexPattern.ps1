@@ -15,6 +15,7 @@ Function test-IsRegexPattern {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text
     REVISIONS
+    * 12:28 PM 5/2/2022 updated examples, to better discern match vs like filter
     * 2:22 PM 11/12/2021 added [regex]$string initial test; fixed some typos; added example to run stack of rgx strings and output scores. 
     Expanded Description; Switched Threshold to 1; Added a verbose grouping output on $rgxOpsSingle; removed () from duplication in $rgxOpsPairedUnCommon; Seems functional. 
     * 11:10 AM 9/20/2021 init
@@ -75,36 +76,48 @@ Function test-IsRegexPattern {
     $pattern="I'm\sa\sREGEX";test-IsRegexPattern($PATTERN);
     Test whether the string evaluates as likely regex
     .EXAMPLE
-    if(test-IsRegexPattern -pattern $pattern){
-        If($matchResults = $haystack -match $pattern){
-          # treat it as a regex replace
-          $haystack -replace $pattern,$newString;
-          #$likeResults | write-output ; 
-        } elseif ($likeResults = $sString -like $pattern) { 
-          # use non-regex replace syntax
-          $target.replace($pattern,$newString);
-          #$likeResults | write-output ; 
-        } ; 
-    } ; 
+    PS> if(test-IsRegexPattern -pattern $pattern){
+    PS>     if(([regex]::matches($pattern,'\*').count) -AND ([regex]::matches($pattern,'\.').count -eq 0)){
+    PS>         write-verbose "(-pattern specified - $($pattern): has wildcard *, but no period => 'like filter')" ; 
+    PS>         $haystack = $haystack |Where-Object{$_.name -like $pattern}
+    PS>         write-verbose "(-pattern specified - $($pattern) - *failed* as a regex, but worked, using -like postfilter)" ; 
+    PS>         write-verbose "(use non-regex replace syntax)" ;
+    PS>         $target.replace($pattern,$newString);
+    PS>     } elseIf($haystack = $haystack |Where-Object{$_.name -match $pattern}){
+    PS>         write-verbose "(-pattern specified - $($pattern) - worked as a regex, using -match postfilter)" ; 
+    PS>         write-verbose "(use regex replace syntax)" ;
+    PS>         $haystack -replace $pattern,$newString;
+    PS>         #$likeResults | write-output ;
+    PS>     } elseif ($haystack = $haystack |Where-Object{$_.name -like $pattern}){
+    PS>         write-verbose "(-pattern specified - $($pattern) - *failed* as a regex, but worked, using -like postfilter)" ; 
+    PS>         write-verbose "(use non-regex replace syntax)" ;
+    PS>         $target.replace($pattern,$newString);
+    PS>     } ;
+    PS> } elseif ($haystack = $haystack |Where-Object{$_.name -like $pattern}){
+    PS>     write-verbose "(-pattern specified - $($pattern) - would jnot pass test-IsRegexPattern: used a -like postfilter)" ; 
+    PS>     write-verbose "(use non-regex replace syntax)" ;
+    PS>     $target.replace($pattern,$newString);
+    PS> } ;    
+    Fancy conditional to evaluate -like from -regex filter string.
     .EXAMPLE
-    $rgxs ='(one()|two())-and-(three\2|four\3)' , '<img\s+src\s*=\s*["'']([^"'']+)["'']\s*/*>',
-     "\b(?<username>[A-Z0-9._%+-]+)@(?<domain>[A-Z0-9.-]+\.[A-Z]+)\b", "\.\d{2}\.",
-      "^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$", 
-      "^([0]?[1-9]|[1][0-2])[./-]([0]?[1-9]|[1|2][0-9]|[3][0|1])[./-]([0-9]{4}|[0-9]{2})$", "^[0-2][0-3]:[0-5][0-9]$",
-       "^E[0-9a-fA-F]{10}.log$", "This\sis\sthe\send", "These are the times to test men's minds", 
-       "^\w{2,20}$", '(?i)DC=\w{1,}?\b', '((s-)*)\w*\.\w*@(brand((lab)*)|)\.com', 
-       "(?i:^(ABC|DEF|GHI|JKL)(MS(5|6)(2|4|5)((0)*)(0|1)((D)*)|\-\w{7})$)", 
-       "^sip:([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$", 
-       "any character or a newline repeated zero or more times", "^(.*?)\.(?i:RDP)$", 
-       "#\sSIG\s#\sBegin\ssignature\sblock(.|\n)*(.|\n)*#\sSIG\s#\sEnd\ssignature\sblock", 
-       "\w+((\s)*)\.\n((\r)*)((\s)*)\w+" ; 
-    $Summary = @() ; 
-    foreach($rgx in $rgxs){
-      $rpt = @{name= $rgx; score=$null} ; 
-      $rpt.score = TEST-isregexpattern $rgx -ReturnScore -verbose ; 
-      $Summary+= [pscustomobject]$rpt ; 
-    } ; 
-    $Summary  ; 
+    PS> $rgxs ='(one()|two())-and-(three\2|four\3)' , '<img\s+src\s*=\s*["'']([^"'']+)["'']\s*/*>',
+    PS>  "\b(?<username>[A-Z0-9._%+-]+)@(?<domain>[A-Z0-9.-]+\.[A-Z]+)\b", "\.\d{2}\.",
+    PS>   "^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$", 
+    PS>   "^([0]?[1-9]|[1][0-2])[./-]([0]?[1-9]|[1|2][0-9]|[3][0|1])[./-]([0-9]{4}|[0-9]{2})$", "^[0-2][0-3]:[0-5][0-9]$",
+    PS>    "^E[0-9a-fA-F]{10}.log$", "This\sis\sthe\send", "These are the times to test men's minds", 
+    PS>    "^\w{2,20}$", '(?i)DC=\w{1,}?\b', '((s-)*)\w*\.\w*@(brand((lab)*)|)\.com', 
+    PS>    "(?i:^(ABC|DEF|GHI|JKL)(MS(5|6)(2|4|5)((0)*)(0|1)((D)*)|\-\w{7})$)", 
+    PS>    "^sip:([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$", 
+    PS>    "any character or a newline repeated zero or more times", "^(.*?)\.(?i:RDP)$", 
+    PS>    "#\sSIG\s#\sBegin\ssignature\sblock(.|\n)*(.|\n)*#\sSIG\s#\sEnd\ssignature\sblock", 
+    PS>    "\w+((\s)*)\.\n((\r)*)((\s)*)\w+" ; 
+    PS> $Summary = @() ; 
+    PS> foreach($rgx in $rgxs){
+    PS>   $rpt = @{name= $rgx; score=$null} ; 
+    PS>   $rpt.score = TEST-isregexpattern $rgx -ReturnScore -verbose ; 
+    PS>   $Summary+= [pscustomobject]$rpt ; 
+    PS> } ; 
+    PS> $Summary  ; 
     Quick test suite to calibarate appropriate 'Threshold' for this function: Runs an array of variant regex strings through, 
     and reports on range of scores for comparison. 
     .LINK
