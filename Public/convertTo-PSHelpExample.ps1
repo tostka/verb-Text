@@ -2,7 +2,7 @@
 Function convertTo-PSHelpExample {
     <#
     .SYNOPSIS
-    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block.
+    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block. If -Scriptblock isn't specified, the current clipboard content is used.
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -15,9 +15,10 @@ Function convertTo-PSHelpExample {
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,Code,Development,CommentBasedHelp
     REVISIONS
+    * 12:37 PM 6/1 7/2022 updated CBH, moved from vert-text -> verb-dev
     * 1:50 PM 3/1/2022 init
     .DESCRIPTION
-    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block.
+    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block. If -Scriptblock isn't specified, the current clipboard content is used.
     To save time, pre-left-justify - move the scriptblock leftmost indent to the left margin, before running this process on the code 
     (e.g. don't have the block pre-indented beyond the minimum 1st level).
 
