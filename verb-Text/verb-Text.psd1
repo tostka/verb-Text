@@ -12,7 +12,7 @@
 RootModule = 'verb-Text.psm1'
 
 # Version number of this module.
-ModuleVersion = '4.2.1'
+ModuleVersion = '4.3.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Generic text-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('compare-CodeRevision','convert-CaesarCipher','_encode','_decode','convertFrom-Base64String','convertFrom-EscapedPSText','convertFrom-Html','Convert-invertCase','convert-Rot13','convert-Rot47','convertTo-Base64String','ConvertTo-CamelCase','convertTo-EscapedPSText','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-PSHelpExample','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnwrappedPS','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedPS','convertTo-WrappedText','create-AcronymFromCaps','get-StringHash','Remove-StringDiacritic','Remove-StringLatinCharacters','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','Test-Uri')
+FunctionsToExport = @('compare-CodeRevision','convert-CaesarCipher','_encode','_decode','convertFrom-Base64String','convertFrom-Html','Convert-invertCase','convert-Rot13','convert-Rot47','convertTo-Base64String','ConvertTo-CamelCase','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-PSHelpExample','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedText','create-AcronymFromCaps','get-StringHash','Remove-StringDiacritic','Remove-StringLatinCharacters','Test-IsGuid','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','test-IsUri')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU/ckOp6cjb9Z4LjpDv1auTN2N
-# 3xigggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUMUkoMJxL3t4gipFN3Tp+oKtw
+# HIugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQ/DZ19
-# It5emnT/UGob7eKLJQ2BSTANBgkqhkiG9w0BAQEFAASBgFm+7rRw+RRfYJ5ydSyn
-# eMz52Da0jnx8LRr3Dod1z6CmqSHHbkx1AIa7AgTdz5o70tY86HT8HYAjbeodrzh4
-# MrHbxpNKKo5cJ3DFH8ITK6LmpXirSabej0q3aJZKcc1zSfIx1d1/EBZDkr6sMW3+
-# 2CsBaZKEIXA94B5jJsBZKp2Z
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBS1DALr
+# QFt6Pe9eR20twxYN7wfsrjANBgkqhkiG9w0BAQEFAASBgBjia71CZcqSdI39TPg0
+# wi9A9JxRUMyoYew5WBmiGTP2w20KzT0nRUQfCujYIZuxt+W2cio4HkXsiDe5W8k1
+# unBLGF+Osw5E8HYD8OCnsLonUj34SXV9i2MGwbXhIGdcgiBxttIxYWMeC1SSLzgh
+# TpSE8i1Ee8fWZw3jM8rUs5sj
 # SIG # End signature block

@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 4.0.0.0
+  Version     : 4.2.1.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -30,6 +30,80 @@ $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:
 #*======v FUNCTIONS v======
 
 
+
+#*------v compare-CodeRevision.ps1 v------
+function compare-CodeRevision {
+    <#
+    .SYNOPSIS
+    compare-CodeRevision - Wrapper for Compare-Object to compare two revisions of a given text block of code. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-01-10
+    FileName    : compare-CodeRevision.ps1
+    License     : MIT License
+    Copyright   : (c) 2021 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Development,ChangeTracking
+    AddedCredit : PaulChavez
+    AddedWebsite:	https://groups.google.com/g/microsoft.public.windows.powershell/c/0zoV5ekugXY
+    AddedTwitter:	URL
+    REVISIONS
+    * 8:04 AM 1/11/2022 minor CBH update
+    * 12:36 PM 1/10/2022 compare-CodeRevision:init
+    .DESCRIPTION
+    compare-CodeRevision - Wrapper for Compare-Object to compare two revisions of a given text block of code. Defaults to appending Line numbers to the comparison output (suppress with -nolinenumbers).
+    
+    Yea, [Git's](https://git-scm.com/) a *much* better choice for revision tracking - *if* you've been doing all editing in your *project directory*. But if you're doing debugging on a remote admin box, fixing the odd bug *on the fly*, by editing-and-'ipmo -force'ing the live installed module .psm1 copy, sometimes you just want to diff the *revised*/newly-functional *local* copy, across the network against your last commited source copy, to see how many changes you actually added (and which functions need to be duped back to your source, for git tracking/build). 
+    .PARAMETER  Reference
+    Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]
+    .PARAMETER  Difference
+    Code block to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]
+    .PARAMETER  NoLineNumbers
+    Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]
+    .EXAMPLE
+    $mod = 'verb-exo' ; 
+    $ref = (gc "\\tsclient\c\sc\$mod\$mod\$mod.psm1")  ;
+    $rev = (gc (gmo $mod).path)  ;
+    $diff = Compare-CodeRevision $ref $rev ; 
+    Compare local (updated) module code agaisnt reference dev source (via automatic RDP client pathing)
+    .LINK
+    https://gist.github.com/chillitom/8335042
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$True,HelpMessage="Code block reference for comparison[-Reference (gc c:\path-to\mod.psm1)]")]
+        [ValidateNotNullOrEmpty()]
+        $Reference,
+        [Parameter(Position=1,Mandatory=$True,HelpMessage="Code block to be compared to the reference code[-Revision (gc c:\path-to\modv2.psm1)]")]
+        [ValidateNotNullOrEmpty()]
+        $Difference,
+        [Parameter(Mandatory=$false,HelpMessage="Switch to suppress default line-number addition (in Reference & Difference code blocks)[-NoLineNumbers]")]
+        [switch]$NoLineNumbers
+    ) ;
+    if(-not $NoLineNumbers){
+        $smsg = "(adding line#'s...)" ; 
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+        else{ write-verbose "$($smsg)" } ;
+        $Reference = $Reference | %{$i = 1} { new-object psobject -prop @{LineNum=$i;Text=$_}; $i++} ;
+        $Difference = $Difference | %{$i = 1} { new-object psobject -prop @{LineNum=$i;Text=$_}; $i++} ;
+        $pltCO=[ordered]@{Reference = $Reference ;Difference = $Difference ;Property = 'Text' ;PassThru = $true ;} ;
+    } else {
+        $pltCO=[ordered]@{Reference = $Reference ;Difference = $Difference ; PassThru = $true ;} ;
+    } ;  
+     
+    $smsg = "Compare-Object w`n$(($pltCO|out-string).trim())" ; 
+    if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level Info } #Error|Warn|Debug 
+    else{ write-verbose "$($smsg)" } ;
+    $diff = Compare-Object @pltCO ; 
+    $diff | write-output ; 
+}
+
+#*------^ compare-CodeRevision.ps1 ^------
 
 #*------v convert-CaesarCipher.ps1 v------
 function convert-CaesarCipher {
@@ -198,6 +272,7 @@ Function convertFrom-EscapedPSText {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 2:10 PM 3/1/2022 updated the ScriptBlock param to string-array [string[]], preserves the multi-line nature of original text (otherwise, ps coerces arrays into single-element strings)
     * 11:09 AM 11/8/2021 init
     .DESCRIPTION
     convertFrom-EscapedPSText - convert a previously backtick-escaped scriptblock of Powershell code text, to an un-escaped equivelent - specifically removing backtick-escape found on all special characters [$*\~;(%?.:@/]. 
@@ -222,7 +297,7 @@ Function convertFrom-EscapedPSText {
         [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
     Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
         [Alias('Code')]
-        [string]$ScriptBlock
+        [string[]]$ScriptBlock
     )  ; 
     if(-not $ScriptBlock){
         $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
@@ -635,6 +710,7 @@ Function convertTo-EscapedPSText {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 2:10 PM 3/1/2022 updated the ScriptBlock param to string-array [string[]], preserves the multi-line nature of original text (otherwise, ps coerces arrays into single-element strings)
     * 11:09 AM 11/8/2021 init
     .DESCRIPTION
     convertTo-EscapedPSText - convert a scriptblock of Powershell code text, to an esaped equivelent - specifically backtick-escape all special characters [$*\~;(%?.:@/]. 
@@ -659,7 +735,7 @@ Function convertTo-EscapedPSText {
         [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
     Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
         [Alias('Code')]
-        [string]$ScriptBlock
+        [string[]]$ScriptBlock
     )  ; 
     if(-not $ScriptBlock){
         $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
@@ -783,6 +859,132 @@ function ConvertTo-lowerCamelCase {
 }
 
 #*------^ ConvertTo-lowerCamelCase.ps1 ^------
+
+#*------v convertTo-PSHelpExample.ps1 v------
+Function convertTo-PSHelpExample {
+    <#
+    .SYNOPSIS
+    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block.
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2022-03-01
+    FileName    : convertTo-PSHelpExample.ps1
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text,Code,Development,CommentBasedHelp
+    REVISIONS
+    * 1:50 PM 3/1/2022 init
+    .DESCRIPTION
+    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block.
+    To save time, pre-left-justify - move the scriptblock leftmost indent to the left margin, before running this process on the code 
+    (e.g. don't have the block pre-indented beyond the minimum 1st level).
+
+    Due to the vageries of parsing & splitting herestrings (e.g. attempting to feed the -ScriptBlock with a herestring), 
+    it's generally simplest to let this off of code pre-copied to the clipboard
+    (comes through cleanly as an array without further need for testing or conversion).
+
+    .PARAMETER  ScriptBlock
+    ScriptBlock of powershell to be wrapped reformatted to CBH code sample 
+    .PARAMETER Wrap
+    Switch to wrap (suffix semcolons with CrLFs) the specified block of code[-wrap]
+    .PARAMETER NoPad
+    Switch to suppress addition of extra NewLines in output code (true by default)[-noPad
+    .EXAMPLE
+    convertTo-PSHelpExample ;
+    Default no-parameter behavior: Convert clipboard code content into a CBH help example-formatted block. 
+    .EXAMPLE
+    $text= "write-host 'yea';`ngci 'c:\somefile.txt' ;`n" | convertTo-PSHelpExample ;
+    Pipeline example
+    .LINK
+    https://github.com/tostka/verb-Text
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="ScriptBlock of powershell to be wrapped reformatted to CBH code sample")]
+        [Alias('Code')]
+        [string[]]$ScriptBlock,
+        [Parameter(HelpMessage="Switch to wrap (suffix semcolons with CrLFs) the specified block of code[-wrap]")]
+        [switch]$Wrap,
+        [Parameter(HelpMessage="Switch to suppress addition of extra NewLines in output code (true by default)[-noPad]")]
+        [switch]$NoPad=$true 
+    )  ; 
+    $sCBHKeyword = '.EXAMPLE' ;
+    $sCBHPrompt = 'PS> ' ;
+    $fromCB = $false ; 
+    if(-not $ScriptBlock){
+        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
+        if($ScriptBlock){
+            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
+            $fromCB = $true ;
+        } else {
+            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
+            Break ;
+        } ;
+    } else {
+        write-verbose "ScriptBlock:$($ScriptBlock)" ;
+    } ;
+    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
+    # rgx replace to prefix all special chars, to make them literals, before doing any text -replace (graveaccent escape ea)
+    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
+    # use wrapper function for the above
+    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
+    
+    if($wrap -OR ($ScriptBlock |  measure).count -eq 1){
+        write-verbose "(-wrap: wrapping code at semicolons)" ; 
+        #  code that wraps ;-delim'd code to prefixable lines
+        # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
+        $splitAt = ";" ; 
+        $replaceWith = ";$([Environment]::NewLine)" ; 
+        # ";`r`n"  ; 
+        $ScriptBlock = $ScriptBlock | Foreach-Object {
+                $_ -replace $splitAt, $replaceWith ;
+        } ; 
+    } ;
+    
+    if($scriptblock -isnot  [array]){
+        write-verbose "(`$ScriptBlock non-Array, splitting on NewLines)" ; 
+        # split into lines - looks like a wrapped block, but it's one line with crlfs - need each to loop and append prefixes
+        #$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine)
+        #$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ; 
+        $ScriptBlock = $ScriptBlock.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;
+    } ; 
+
+    
+    if($nopad){
+        [array]$CBH = "$($sCBHKeyword)"
+    } else {
+        [array]$CBH = "$($sCBHKeyword)`n"
+    } ; 
+    $ScriptBlock = $ScriptBlock | Foreach-Object {
+        if($nopad){
+            $CBH += "$($sCBHPrompt) $($_)" ;
+        } else {
+            $CBH += "$($sCBHPrompt) $($_)`n" ;
+        } ; 
+    } ; 
+    $CBH += "SAMPLEOUTPUT" ; 
+    $CBH += "DESCRIPTION" ; 
+    
+    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
+    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
+    # wrapper function
+    $CBH=convertFrom-EscapedPSText -ScriptBlock $CBH -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
+    if($fromCB){
+        write-host "(sending results back to clipboard)" ;
+        #$CBH | out-clipboard ; 
+        set-clipboard -value $CBH ;
+    } else { ; 
+        # or to pipeline
+        write-verbose "(sending results to pipeline)" ;
+        $CBH | write-output ; 
+    } ; 
+}
+
+#*------^ convertTo-PSHelpExample.ps1 ^------
 
 #*------v convertTo-QuotedList.ps1 v------
 Function convertTo-QuotedList {
@@ -2040,14 +2242,14 @@ function Test-Uri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUzrJOKGjO5M1/UgK3gkuFbesG
-# edugggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUMns2f3eSUfz9QNIGWmdKhJkB
+# 1h2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2062,9 +2264,9 @@ Export-ModuleMember -Function convert-CaesarCipher,_encode,_decode,convertFrom-B
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT7mFMl
-# 3EB7wJs0DnkEXlY7x9cthDANBgkqhkiG9w0BAQEFAASBgIoVXMDdVp7g15PJGKue
-# DZ3JxXYkAYy2zM+vFAL4OrmTwRb4jOfEVrszN5rh8a5x1dCW9QwTWZm/WUJWa4lg
-# sslvGZmX6KPo6y+KFQ/OFXZHuEUdLulQUScJIMCBY3dzZt1RvMedQ8nDE8iWE/vp
-# bS6hltBo4uP+SHtC9k+8pSnG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT/SBEH
+# JDtGxlQ6R2RJD6lNrW0tMzANBgkqhkiG9w0BAQEFAASBgHqvz7k1fQtIWuHGn78p
+# 9TDZo2pOzdFFk7pSDaM6MqpivoiMcDIz6jgSbvj0uKvOSeCE1UYQj45NK/UuEcKK
+# sy4ovLpG+x5Lg2UdIA42zr1Bc2GjdfHZRWmJb7BCjo38BaET1Yw02q+aRIvi6Tjt
+# LrXgrvcQtYaQ4T0/EpagR3z1
 # SIG # End signature block

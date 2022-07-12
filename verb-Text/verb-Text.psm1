@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 4.2.1.0
+  Version     : 4.3.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -24,10 +24,14 @@
   #>
 
 
-$script:ModuleRoot = $PSScriptRoot ;
-$script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
+    $script:ModuleRoot = $PSScriptRoot ;
+    $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
+    $runningInVsCode = $env:TERM_PROGRAM -eq 'vscode' ;
+    $Psv2PublicExcl = @() ;
+    $Psv2PrivateExcl = @() ;
 
 #*======v FUNCTIONS v======
+
 
 
 
@@ -104,6 +108,7 @@ function compare-CodeRevision {
 }
 
 #*------^ compare-CodeRevision.ps1 ^------
+
 
 #*------v convert-CaesarCipher.ps1 v------
 function convert-CaesarCipher {
@@ -209,6 +214,7 @@ Integer 'key' [1-25] to be used to encode[-key 2]
 
 #*------^ convert-CaesarCipher.ps1 ^------
 
+
 #*------v convertFrom-Base64String.ps1 v------
 function convertFrom-Base64String {
     <#
@@ -228,6 +234,7 @@ function convertFrom-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 3:58 PM 4/20/2022 Work in progress, was adding file 'sourcefile/targetfile' support, untested, I believe I had issues with the conversion, b64 wouldn't convert cleanly back to original (as part of the encoding for the invoke-soundcue bundled ping updates).
     * 10:38 AM 9/16/2021 removed spurious DefaultParameterSet matl and file/path test material (from convertto-b64...), added pipeline example to CBH, fixed CBH params (had convertfrom params spec'd); added email address conversion example
     * 8:26 AM 12/13/2019 convertFrom-Base64String:init
     .DESCRIPTION
@@ -240,85 +247,66 @@ function convertFrom-Base64String {
     .EXAMPLE
     PS> $EmailAddress = 'YWRkcmVzc0Bkb21haW4uY29t' | convertFrom-Base64String
     Pipeline conversion of encoded EmailAddress back to string.
+    .EXAMPLE
+    PS> convertTo-Base64String -path c:\path-to\file.png >> base64.txt ; 
+    PS> $Media = ''UklGRmysA...TRIMMED...QD8/97/y/+8/7P/' ;
+    PS> convertfrom-Base64String -string $media -TargetPath c:\path-to\file.png ; 
+    Demo conversion of encoded wav file (using 
     .LINK
     #>
     [CmdletBinding()]
     PARAM(
-        [Parameter(Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
-        [String]$string
+        [Parameter(Position=0,ValueFromPipeline=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
+        [String]$string,
+        [Parameter(HelpMessage="Optional param that designates path from which to read a file containing Base64 encoded content, to be decoded[-SourceFile 'c:\path-to\base64.txt']")]
+        [string]$SourceFile,
+        [Parameter(HelpMessage="Optional param that designates path into which to write the decoded Base64 content [-TargetPath 'c:\path-to\file.png']")]
+        [string]$TargetFile
     ) ;
-    [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($string))| write-output ;     
+    if($string -AND $SourceFile){
+        throw "Please use either -String or -SourceFile, but not both!"
+        break ; 
+    } ; 
+    
+    $error.clear() ;
+    TRY {
+        if(-not($string) -AND $SourceFile){
+            $string = Get-Content $SourceFile #-Encoding Byte ; 
+        } elseif (-not($string)){
+            throw "Please specify either -String '[base64-encoded string]', or -SourceFile c:\path-to\base64.txt" ; 
+        } ; 
+        
+        if(-not $TargetFile){
+            $String = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($string)) ;  
+            write-verbose "returning output to pipeline" ;
+            #[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($string))| write-output ;     
+            $String | write-output ;     
+        } else {
+            write-verbose "writing output to specified:$($TargetFile)..." ; 
+            <# 
+            # Get-Content without -raw splits the file into an array of lines thus destroying the code
+            # Text.Encoding interprets the binary code as text thus destroying the code
+            # Out-File is for text data, not binary code
+            #>
+            #$Content = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($string)) ;  
+            #$Content = [System.Convert]::FromBase64String($string)
+            $folder = Split-Path $TargetFile ; 
+            if(-not(Test-Path $folder)){
+                New-Item $folder -ItemType Directory | Out-Null ; 
+            } ; 
+            #Set-Content -Path $TargetFile -Value $Content #-Encoding Byte ;
+            [IO.File]::WriteAllBytes($TargetFile, [Convert]::FromBase64String($string))
+        }; 
+    } CATCH {
+        $ErrTrapd=$Error[0] ;
+        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    } ; 
 }
 
 #*------^ convertFrom-Base64String.ps1 ^------
 
-#*------v convertFrom-EscapedPSText.ps1 v------
-Function convertFrom-EscapedPSText {
-    <#
-    .SYNOPSIS
-    convertFrom-EscapedPSText - convert a previously backtick-escaped scriptblock of Powershell code text, to an un-escaped equivelent - specifically removing backtick-escape found on all special characters [$*\~;(%?.:@/]. 
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-11-08
-    FileName    : convertFrom-EscapedPSText.ps1
-    License     : MIT License
-    Copyright   : (c) 2021 Todd Kadrie
-    Github      : https://github.com/tostka/verb-text
-    Tags        : Powershell,Text
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
-    REVISIONS
-    * 2:10 PM 3/1/2022 updated the ScriptBlock param to string-array [string[]], preserves the multi-line nature of original text (otherwise, ps coerces arrays into single-element strings)
-    * 11:09 AM 11/8/2021 init
-    .DESCRIPTION
-    convertFrom-EscapedPSText - convert a previously backtick-escaped scriptblock of Powershell code text, to an un-escaped equivelent - specifically removing backtick-escape found on all special characters [$*\~;(%?.:@/]. 
-    Intent is to run this *after* to running a -replace pass on a given piece of pre-escaped Powershell code as text (parsing & editing scripts with powershell itself), to ensure the special characters in the block are no longer treated as literal text. Prior to doing search and replace, one would typically have escaped the special characters by running convertTo-EscapedPSText() on the block. 
-    .PARAMETER  ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
-    .EXAMPLE
-    # pre-escape PS special chars
-    $ScriptBlock = get-content c:\path-to\script.ps1 ; 
-    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock ; 
-    $splitAt = ";" ; 
-    $replaceWith = ";$([Environment]::NewLine)" ; 
-    # ";`r`n"  ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {$_ -replace $splitAt, $replaceWith } ; 
-    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock ; 
-    Load a script file into a $ScriptBlock vari, escape special characters in the $Scriptblock, run a wrap on the text at semicolons (replace ';' with ';`n), then unescape the specialcharacters in the scriptblock, back to original functional state. 
-    .LINK
-    https://github.com/tostka/verb-Text
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
-        [Alias('Code')]
-        [string[]]$ScriptBlock
-    )  ; 
-    if(-not $ScriptBlock){
-        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
-        if($ScriptBlock){
-            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
-        } else {
-            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
-            Break ;
-        } ;
-    } else {
-        write-verbose "ScriptBlock:$($ScriptBlock)" ;
-    } ;
-    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
-    # to escape them, have to dbl: $password.Replace('$', $$')
-    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
-    # rgx replace all special chars, to make them literals, before doing the replace (graveaccent escape ea matched char in the [$*\~;(%?.:@/] range)
-    $ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
-    $ScriptBlock | write-output ; 
-}
-
-#*------^ convertFrom-EscapedPSText.ps1 ^------
 
 #*------v convertFrom-Html.ps1 v------
 function convertFrom-Html {
@@ -433,6 +421,7 @@ function convertFrom-Html {
 
 #*------^ convertFrom-Html.ps1 ^------
 
+
 #*------v Convert-invertCase.ps1 v------
 function Convert-invertCase {
     <#
@@ -481,6 +470,7 @@ function Convert-invertCase {
 
 #*------^ Convert-invertCase.ps1 ^------
 
+
 #*------v convert-Rot13.ps1 v------
 function convert-Rot13 {
     <#
@@ -524,6 +514,7 @@ function convert-Rot13 {
 }
 
 #*------^ convert-Rot13.ps1 ^------
+
 
 #*------v convert-Rot47.ps1 v------
 function convert-Rot47 {
@@ -581,11 +572,12 @@ function convert-Rot47 {
 
 #*------^ convert-Rot47.ps1 ^------
 
+
 #*------v convertTo-Base64String.ps1 v------
 function convertTo-Base64String {
     <#
     .SYNOPSIS
-    convertTo-Base64String - Convert specified string or Path-to-file to Base64 encoded string and return to pipeline. If -String resolves to a path, it will be treated as a -path parameter (file content converted to Base64 encoded string). 
+    convertTo-Base64String - Convert specified string or Path-to-file to Base64 encoded string and return to pipeline. If -String resolves to a path, it will be treated as a -SourceFile parameter (file content converted to Base64 encoded string). 
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -600,16 +592,21 @@ function convertTo-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 3:58 PM 4/20/2022 Work in progress, was adding file 'sourcefile/targetfile' support, untested, I believe I had issues with the conversion, b64 wouldn't convert cleanly back to original (as part of the encoding for the invoke-soundcue bundled ping updates).
     * 10:27 AM 9/16/2021 updated CBH, set -string as position 0, flipped pipeline to string from path, removed typo $file test, pre-resolve-path any string, and if it resolves to a file, load the file for conversion. Shift path validation into the body. 
     * 8:26 AM 12/13/2019 convertTo-Base64String:init
     .DESCRIPTION
     convertTo-Base64String - Convert specified string or Path-to-file to Base64 encoded string and return to pipeline. If String resolves to a path, it will be treated as a -path parameter (file content converted to Base64 encoded string). 
-    .PARAMETER  path
-    File to be Base64 encoded (image, text, whatever)[-path path-to-file]
+    .PARAMETER  SourceFile
+    File to be Base64 encoded (image, text, whatever)[-SourceFile path-to-file]
     .PARAMETER  string
     String to be Base64 encoded [-string 'string to be encoded']
     .EXAMPLE
-    PS> convertTo-Base64String -path C:\Path\To\Image.png >> base64.txt ; 
+    PS> convertTo-Base64String -SourceFile C:\Path\To\Image.png > base64.txt ; 
+    Example converting a png file to base64 and outputing result to text using redirection
+    .EXAMPLE
+    PS> convertto-base64string -sourcefile 'c:\path-to\some.jpg' -targetfile c:\tmp\b64.txt -verbose
+    Example converting a jpg file to a base64-encoded text file leveraging the -targetfile parameter, and with verbose output 
     .EXAMPLE
     PS> convertTo-Base64String -string "my *very* minimally obfuscated info"
     .EXAMPLE
@@ -619,24 +616,66 @@ function convertTo-Base64String {
     #>
     [CmdletBinding(DefaultParameterSetName='File')]
     PARAM(
-        [Parameter(ParameterSetName='File',HelpMessage="File to be Base64 encoded (image, text, whatever)[-path path-to-file]")]
-        #[Alias('ALIAS1', 'ALIAS2')]
-        #[ValidateScript({Test-Path $_})]
-        [String]$path,
-        [Parameter(ParameterSetName='String',Position=0,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="string to be converted[-string 'string to be encoded']")]
-        [String]$string
+        [Parameter(Position=0,ValueFromPipeline=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
+        [String]$string,
+        [Parameter(HelpMessage="Optional param that designates path from which to read a file to be Base64 encoded[-SourceFile 'c:\path-to\base64.txt']")]
+        [string]$SourceFile,
+        [Parameter(HelpMessage="Optional param that designates path into which to write the encoded Base64 content [-TargetPath 'c:\path-to\file.png']")]
+        [string]$TargetFile
     ) ;
-    if($path -OR ($path = $string| Resolve-Path -ea 0)){
-        if(test-path $path){
-          write-verbose "(loading specified/resolved path:$($path))" ; 
-          $String = (get-content $path -encoding byte) ; 
-        } else { throw "Unable to load specified -path:`n$($path))" } ; 
-    } 
-    [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String)) | write-output ; 
-    
+    $error.clear() ;
+    TRY {
+        if($SourceFile -OR ($SourceFile = $string| Resolve-Path -ea 0)){
+            if(test-path $SourceFile){
+                write-verbose "(loading specified/resolved SourceFile:$($SourceFile))" ; 
+                <# Get-Content without -raw splits the file into an array of lines thus destroying the code
+                # Text.Encoding interprets the binary code as text thus destroying the code
+                # Out-File is for text data, not binary code
+                #>
+                #$String = (get-content $SourceFile -encoding byte) ; 
+                #$String = [Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile))
+                # direct convert 1-liner bin2b64
+                if(-not $TargetFile){
+                    write-verbose "returning output to pipeline" ;
+                    $base64string = [Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile))
+                    $base64string | write-output ; 
+                } else {
+                    write-verbose "writing output to specified:$($TargetFile)..." ; 
+                        $folder = Split-Path $TargetFile ; 
+                        if(-not(Test-Path $folder)){
+                            New-Item $folder -ItemType Directory | Out-Null ; 
+                        } ; 
+                        #Set-Content -Path $TargetFile -Value $Content #-Encoding Byte ;
+                        #[IO.File]::WriteAllBytes($TargetFile, [Convert]::FromBase64String($String ))
+                        [IO.File]::WriteAllBytes($TargetFile,[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile))) ; ; 
+                }; 
+                
+            } else { throw "Unable to load specified -SourceFile:`n$($SourceFile))" } ; 
+        } else { 
+            $String = [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String)) ;
+        } ; 
+        if(-not $TargetFile){
+            write-verbose "returning output to pipeline" ;
+            $String | write-output ; 
+        } else {
+            write-verbose "writing output to specified:$($TargetFile)..." ; 
+                $folder = Split-Path $TargetFile ; 
+                if(-not(Test-Path $folder)){
+                    New-Item $folder -ItemType Directory | Out-Null ; 
+                } ; 
+                Set-Content -Path $TargetFile -Value $Content #-Encoding Byte ;
+                #[IO.File]::WriteAllBytes($TargetFile, [Convert]::FromBase64String($String ))
+        }; 
+    } CATCH {
+        $ErrTrapd=$Error[0] ;
+        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+    } ; 
 }
 
 #*------^ convertTo-Base64String.ps1 ^------
+
 
 #*------v ConvertTo-CamelCase.ps1 v------
 function ConvertTo-CamelCase {
@@ -690,73 +729,6 @@ function ConvertTo-CamelCase {
 
 #*------^ ConvertTo-CamelCase.ps1 ^------
 
-#*------v convertTo-EscapedPSText.ps1 v------
-Function convertTo-EscapedPSText {
-    <#
-    .SYNOPSIS
-    convertTo-EscapedPSText - convert a scriptblock of Powershell code text, to an esaped equivelent - specifically backtick-escape all special characters [$*\~;(%?.:@/]. 
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-11-08
-    FileName    : convertTo-EscapedPSText.ps1
-    License     : MIT License
-    Copyright   : (c) 2021 Todd Kadrie
-    Github      : https://github.com/tostka/verb-text
-    Tags        : Powershell,Text
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
-    REVISIONS
-    * 2:10 PM 3/1/2022 updated the ScriptBlock param to string-array [string[]], preserves the multi-line nature of original text (otherwise, ps coerces arrays into single-element strings)
-    * 11:09 AM 11/8/2021 init
-    .DESCRIPTION
-    convertTo-EscapedPSText - convert a scriptblock of Powershell code text, to an esaped equivelent - specifically backtick-escape all special characters [$*\~;(%?.:@/]. 
-    Intent is to run this prior to running a -replace pass on a given piece of Powershell code, to ensure the special characters in the block are treated as literal text. Following search and replace, one would typically *un*-escape the special characters by running convertFrom-EscapedPSText() on the block. 
-    .PARAMETER  ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
-    .EXAMPLE
-    # pre-escape PS special chars
-    $ScriptBlock = get-content c:\path-to\script.ps1 ; 
-    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock ; 
-    $splitAt = ";" ; 
-    $replaceWith = ";$([Environment]::NewLine)" ; 
-    # ";`r`n"  ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {$_ -replace $splitAt, $replaceWith } ; 
-    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock ; 
-    Load a script file into a $ScriptBlock vari, escape special characters in the $Scriptblock, run a wrap on the text at semicolons (replace ';' with ';`n), then unescape the specialcharacters in the scriptblock, back to original functional state. 
-    .LINK
-    https://github.com/tostka/verb-Text
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
-        [Alias('Code')]
-        [string[]]$ScriptBlock
-    )  ; 
-    if(-not $ScriptBlock){
-        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
-        if($ScriptBlock){
-            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
-        } else {
-            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
-            Break ;
-        } ;
-    } else {
-        write-verbose "ScriptBlock:$($ScriptBlock)" ;
-    } ;
-    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
-    # to escape them, have to dbl: $password.Replace('$', $$')
-    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
-    # rgx replace all special chars, to make them literals, before doing the replace (graveaccent escape ea matched char in the [$*\~;(%?.:@/] range)
-    $ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
-    $ScriptBlock | write-output ; 
-}
-
-#*------^ convertTo-EscapedPSText.ps1 ^------
 
 #*------v ConvertTo-L33t.ps1 v------
 function ConvertTo-L33t {
@@ -807,6 +779,7 @@ function ConvertTo-L33t {
 }
 
 #*------^ ConvertTo-L33t.ps1 ^------
+
 
 #*------v ConvertTo-lowerCamelCase.ps1 v------
 function ConvertTo-lowerCamelCase {
@@ -860,11 +833,12 @@ function ConvertTo-lowerCamelCase {
 
 #*------^ ConvertTo-lowerCamelCase.ps1 ^------
 
+
 #*------v convertTo-PSHelpExample.ps1 v------
 Function convertTo-PSHelpExample {
     <#
     .SYNOPSIS
-    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block.
+    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block. If -Scriptblock isn't specified, the current clipboard content is used.
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -877,9 +851,10 @@ Function convertTo-PSHelpExample {
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,Code,Development,CommentBasedHelp
     REVISIONS
+    * 12:37 PM 6/1 7/2022 updated CBH, moved from vert-text -> verb-dev
     * 1:50 PM 3/1/2022 init
     .DESCRIPTION
-    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block.
+    convertTo-PSHelpExample - Given a ScriptBlock of unindented sample code, adds leading keyword, prefixes each code line with PS>, and adds empty line for description, for use in a CommentBasedHelp block. If -Scriptblock isn't specified, the current clipboard content is used.
     To save time, pre-left-justify - move the scriptblock leftmost indent to the left margin, before running this process on the code 
     (e.g. don't have the block pre-indented beyond the minimum 1st level).
 
@@ -986,6 +961,7 @@ Function convertTo-PSHelpExample {
 
 #*------^ convertTo-PSHelpExample.ps1 ^------
 
+
 #*------v convertTo-QuotedList.ps1 v------
 Function convertTo-QuotedList {
     <#
@@ -1027,6 +1003,7 @@ Function convertTo-QuotedList {
 
 #*------^ convertTo-QuotedList.ps1 ^------
 
+
 #*------v ConvertTo-SCase.ps1 v------
 function ConvertTo-SCase {
     <#
@@ -1067,6 +1044,7 @@ function ConvertTo-SCase {
 }
 
 #*------^ ConvertTo-SCase.ps1 ^------
+
 
 #*------v ConvertTo-SNAKE_CASE.ps1 v------
 function ConvertTo-SNAKE_CASE {
@@ -1124,6 +1102,7 @@ function ConvertTo-SNAKE_CASE {
 
 #*------^ ConvertTo-SNAKE_CASE.ps1 ^------
 
+
 #*------v ConvertTo-StringQuoted.ps1 v------
 Function ConvertTo-StringQuoted {
     <#
@@ -1157,6 +1136,7 @@ Function ConvertTo-StringQuoted {
 }
 
 #*------^ ConvertTo-StringQuoted.ps1 ^------
+
 
 #*------v convertTo-StringReverse.ps1 v------
 function convertTo-StringReverse {
@@ -1199,6 +1179,7 @@ function convertTo-StringReverse {
 }
 
 #*------^ convertTo-StringReverse.ps1 ^------
+
 
 #*------v convertTo-StUdlycaPs.ps1 v------
 function convertTo-StUdlycaPs {
@@ -1248,6 +1229,7 @@ function convertTo-StUdlycaPs {
 
 #*------^ convertTo-StUdlycaPs.ps1 ^------
 
+
 #*------v convertTo-TitleCase.ps1 v------
 function convertTo-TitleCase {
     <#
@@ -1291,80 +1273,6 @@ function convertTo-TitleCase {
 
 #*------^ convertTo-TitleCase.ps1 ^------
 
-#*------v convertTo-UnwrappedPS.ps1 v------
-Function convertTo-UnwrappedPS {
-    <#
-    .SYNOPSIS
-    convertTo-UnwrappedPS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-11-08
-    FileName    : convertTo-UnwrappedPS.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-text
-    Tags        : Powershell,Text
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
-    REVISIONS
-    * 9:38 AM 11/22/2021 ren unwrap-ps -> convertTo-UnwrappedPS 
-    * 11:09 AM 11/8/2021 init
-    .DESCRIPTION
-    convertTo-UnwrappedPS - Unwrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
-    .PARAMETER  ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
-    .EXAMPLE
-    $text=convertTo-UnwrappedPS -ScriptBlock "write-host 'yea';`ngci 'c:\somefile.txt';" ;
-    Unwrap the specified scriptblock at the semicolons. 
-    .LINK
-    https://github.com/tostka/verb-Text
-    #>
-    [CmdletBinding()]
-    [Alias('unwrap-PS')]
-    param(
-        [Parameter(Position=0,Mandatory=$false,HelpMessage="ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be unwrapped (sub-out ;`n with ;) [-ScriptBlock 'c:\path-to\script.ps1']")]
-        [Alias('Code')]
-        [string]$ScriptBlock
-    )  ; 
-    if(-not $ScriptBlock){
-        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
-        if($ScriptBlock){
-            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
-        } else {
-            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
-            Break ;
-        } ;
-    } else {
-        write-verbose "ScriptBlock:$($ScriptBlock)" ;
-    } ;
-    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
-    # to escape them, have to dbl: $password.Replace('$', $$')
-    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
-    # rgx replace all special chars, to make them literals, before doing any -replace (graveaccent escape ea)
-    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
-    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
-    # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
-    $splitAt = ";$([Environment]::NewLine)" ; 
-    
-    $replaceWith = ";" ; 
-    # ";`r`n"  ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {
-            $_ -replace $splitAt, $replaceWith ;
-    } ; 
-    # then put the $'s back (stays dbld):
-    #$ScriptBlock = $ScriptBlock.Replace('$$', '$')
-    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
-    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
-    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
-    $ScriptBlock | write-output ; 
-}
-
-#*------^ convertTo-UnwrappedPS.ps1 ^------
 
 #*------v convertTo-UnWrappedText.ps1 v------
 Function convertTo-UnWrappedText {
@@ -1416,6 +1324,7 @@ Function convertTo-UnWrappedText {
 
 #*------^ convertTo-UnWrappedText.ps1 ^------
 
+
 #*------v convertTo-WordsReverse.ps1 v------
 Function convertTo-WordsReverse {
     <#
@@ -1453,7 +1362,7 @@ Caesar had his Brutus, Charles the First his Cromwell; and George the Third
 - ['Treason!' cried the Speaker] -
 may profit by their example. 
 If this be treason, make the most of it. 
-? Patrick Henry
+― Patrick Henry
 "@ ; 
     convertTo-WordsReverse -lines $h -textonly -verbose; 
     Processing herestring block with TextOnly & verbose options. 
@@ -1527,82 +1436,6 @@ I hold with those who favor fire.
 
 #*------^ convertTo-WordsReverse.ps1 ^------
 
-#*------v convertTo-WrappedPS.ps1 v------
-Function convertTo-WrappedPS {
-    <#
-    .SYNOPSIS
-    convertTo-WrappedPS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons).
-    .NOTES
-    Version     : 1.0.0
-    Author      : Todd Kadrie
-    Website     :	http://www.toddomation.com
-    Twitter     :	@tostka / http://twitter.com/tostka
-    CreatedDate : 2021-11-08
-    FileName    : convertTo-WrappedPS.ps1
-    License     : MIT License
-    Copyright   : (c) 2020 Todd Kadrie
-    Github      : https://github.com/tostka/verb-text
-    Tags        : Powershell,Text
-    AddedCredit : REFERENCE
-    AddedWebsite:	URL
-    AddedTwitter:	URL
-    REVISIONS
-    * 9:38 AM 11/22/2021 ren wrap-ps -> convertTo-WrappedPS with wrap-ps alias ; added pipeline support
-    * 11:09 AM 11/8/2021 init
-    .DESCRIPTION
-    convertTo-WrappedPS - Wrap a a Powershell ScriptBlock at _preexisting_ semi-colon (;) delimiters (does not add semicolons or otherwise attempt to parse the scriptblock into definited lines; just adds CrLF's following the semicolons)
-    .PARAMETER  ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at 
-    .EXAMPLE
-    $text=convertTo-WrappedPS -ScriptBlock "write-host 'yea'; gci 'c:\somefile.txt';" ;
-    Wrap the specified scriptblock at the semicolons. 
-    .EXAMPLE
-    $text= "write-host 'yea'; gci 'c:\somefile.txt';" | convertTo-WrappedPS ;
-    Pipeline example
-    .LINK
-    https://github.com/tostka/verb-Text
-    #>
-    [CmdletBinding()]
-    [Alias('wrap-PS')]
-    PARAM(
-        [Parameter(Position=0,Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="ScriptBlock
-    Semi-colon-delimited ScriptBlock of powershell to be wrapped at [-ScriptBlock 'c:\path-to\script.ps1']")]
-        [Alias('Code')]
-        [string]$ScriptBlock
-    )  ; 
-    if(-not $ScriptBlock){
-        $ScriptBlock= (get-clipboard) # .trim().replace("'",'').replace('"','') ;
-        if($ScriptBlock){
-            write-verbose "No -ScriptBlock specified, detected text on clipboard:`n$($ScriptBlock)" ;
-        } else {
-            write-warning "No -path specified, nothing suitable found on clipboard. EXITING!" ;
-            Break ;
-        } ;
-    } else {
-        write-verbose "ScriptBlock:$($ScriptBlock)" ;
-    } ;
-    # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
-    # to escape them, have to dbl: $password.Replace('$', $$')
-    #$ScriptBlock = $ScriptBlock.Replace('$', '$$');
-    # rgx replace all special chars, to make them literals, before doing any -replace (graveaccent escape ea)
-    #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
-    $ScriptBlock=convertTo-EscapedPSText -ScriptBlock $ScriptBlock -Verbose:($PSBoundParameters['Verbose'] -eq $true) ; 
-    # functional AHK: StringReplace clipboard, clipboard, `;, `;`r`n, All
-    $splitAt = ";" ; 
-    $replaceWith = ";$([Environment]::NewLine)" ; 
-    # ";`r`n"  ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {
-            $_ -replace $splitAt, $replaceWith ;
-    } ; 
-    # then put the $'s back (stays dbld):
-    #$ScriptBlock = $ScriptBlock.Replace('$$', '$')
-    # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
-    #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
-    $ScriptBlock=convertFrom-EscapedPSText -ScriptBlock $ScriptBlock  -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
-    $ScriptBlock | write-output ; 
-}
-
-#*------^ convertTo-WrappedPS.ps1 ^------
 
 #*------v convertTo-WrappedText.ps1 v------
 Function convertTo-WrappedText {
@@ -1703,6 +1536,7 @@ Function convertTo-WrappedText {
 
 #*------^ convertTo-WrappedText.ps1 ^------
 
+
 #*------v create-AcronymFromCaps.ps1 v------
 Function create-AcronymFromCaps {
     <#
@@ -1768,6 +1602,7 @@ Function create-AcronymFromCaps {
 
 #*------^ create-AcronymFromCaps.ps1 ^------
 
+
 #*------v get-StringHash.ps1 v------
 function get-StringHash {
         <#
@@ -1826,6 +1661,7 @@ function get-StringHash {
     }
 
 #*------^ get-StringHash.ps1 ^------
+
 
 #*------v Remove-StringDiacritic.ps1 v------
 function Remove-StringDiacritic {
@@ -1890,6 +1726,7 @@ function Remove-StringDiacritic {
 
 #*------^ Remove-StringDiacritic.ps1 ^------
 
+
 #*------v Remove-StringLatinCharacters.ps1 v------
 function Remove-StringLatinCharacters {
 <#
@@ -1931,6 +1768,60 @@ function Remove-StringLatinCharacters {
 
 #*------^ Remove-StringLatinCharacters.ps1 ^------
 
+
+#*------v test-IsGuid.ps1 v------
+function Test-IsGuid{
+    <#
+    .SYNOPSIS
+    Test-IsGuid.ps1 - Validates a given guid using the TryParse method from the .NET Class “System.Guid”
+    .NOTES
+    Version     : 1.0.0
+    Author      : Morgan
+    Website     :	https://morgantechspace.com/
+    Twitter     :	
+    CreatedDate : 2022-06-23
+    FileName    : Test-IsGuid.ps1
+    License     : [none specified]
+    Copyright   : © 2022 MorganTechSpace
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,GUID
+    AddedCredit : 
+    AddedWebsite:	https://morgantechspace.com/2021/01/powershell-check-if-string-is-valid-guid-or-not.html
+    REVISIONS
+    10:13 AM 6/23/2022 add to verb-text
+    1/12/21 posted version morgantechspace.com
+    .DESCRIPTION
+    Test-IsGuid.ps1 - Validates a given guid using the TryParse method from the .NET Class “System.Guid”
+    .PARAMETER String
+    String to be validated
+    .INPUTS
+    Accepts pipeline input
+    .OUTPUTS
+    System.Boolean
+    .EXAMPLE
+    Test-IsGuid -string '17863633-98b5-4898-9633-e92ccccd634c'
+    Stock call
+    .LINK
+    https://github.com/tostka/verb-text
+    .LINK
+    https://morgantechspace.com/2021/01/powershell-check-if-string-is-valid-guid-or-not.html
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    Param(
+        # Uri to be validated
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)]
+        #[Alias('')]
+        [string]$String
+    ) ;
+    $ObjectGuid = [System.Guid]::empty
+    # Returns True if successfully parsed
+    return [System.Guid]::TryParse($String,[System.Management.Automation.PSReference]$ObjectGuid) ;
+}
+
+#*------^ test-IsGuid.ps1 ^------
+
+
 #*------v test-IsNumeric.ps1 v------
 Function test-IsNumeric {
     <#
@@ -1971,6 +1862,7 @@ Function test-IsNumeric {
 
 #*------^ test-IsNumeric.ps1 ^------
 
+
 #*------v test-IsRegexPattern.ps1 v------
 Function test-IsRegexPattern {
     <#
@@ -1988,6 +1880,7 @@ Function test-IsRegexPattern {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text
     REVISIONS
+    * 12:28 PM 5/2/2022 updated examples, to better discern match vs like filter
     * 2:22 PM 11/12/2021 added [regex]$string initial test; fixed some typos; added example to run stack of rgx strings and output scores. 
     Expanded Description; Switched Threshold to 1; Added a verbose grouping output on $rgxOpsSingle; removed () from duplication in $rgxOpsPairedUnCommon; Seems functional. 
     * 11:10 AM 9/20/2021 init
@@ -2048,36 +1941,48 @@ Function test-IsRegexPattern {
     $pattern="I'm\sa\sREGEX";test-IsRegexPattern($PATTERN);
     Test whether the string evaluates as likely regex
     .EXAMPLE
-    if(test-IsRegexPattern -pattern $pattern){
-        If($matchResults = $haystack -match $pattern){
-          # treat it as a regex replace
-          $haystack -replace $pattern,$newString;
-          #$likeResults | write-output ; 
-        } elseif ($likeResults = $sString -like $pattern) { 
-          # use non-regex replace syntax
-          $target.replace($pattern,$newString);
-          #$likeResults | write-output ; 
-        } ; 
-    } ; 
+    PS> if(test-IsRegexPattern -pattern $pattern){
+    PS>     if(([regex]::matches($pattern,'\*').count) -AND ([regex]::matches($pattern,'\.').count -eq 0)){
+    PS>         write-verbose "(-pattern specified - $($pattern): has wildcard *, but no period => 'like filter')" ; 
+    PS>         $haystack = $haystack |Where-Object{$_.name -like $pattern}
+    PS>         write-verbose "(-pattern specified - $($pattern) - *failed* as a regex, but worked, using -like postfilter)" ; 
+    PS>         write-verbose "(use non-regex replace syntax)" ;
+    PS>         $target.replace($pattern,$newString);
+    PS>     } elseIf($haystack = $haystack |Where-Object{$_.name -match $pattern}){
+    PS>         write-verbose "(-pattern specified - $($pattern) - worked as a regex, using -match postfilter)" ; 
+    PS>         write-verbose "(use regex replace syntax)" ;
+    PS>         $haystack -replace $pattern,$newString;
+    PS>         #$likeResults | write-output ;
+    PS>     } elseif ($haystack = $haystack |Where-Object{$_.name -like $pattern}){
+    PS>         write-verbose "(-pattern specified - $($pattern) - *failed* as a regex, but worked, using -like postfilter)" ; 
+    PS>         write-verbose "(use non-regex replace syntax)" ;
+    PS>         $target.replace($pattern,$newString);
+    PS>     } ;
+    PS> } elseif ($haystack = $haystack |Where-Object{$_.name -like $pattern}){
+    PS>     write-verbose "(-pattern specified - $($pattern) - would jnot pass test-IsRegexPattern: used a -like postfilter)" ; 
+    PS>     write-verbose "(use non-regex replace syntax)" ;
+    PS>     $target.replace($pattern,$newString);
+    PS> } ;    
+    Fancy conditional to evaluate -like from -regex filter string.
     .EXAMPLE
-    $rgxs ='(one()|two())-and-(three\2|four\3)' , '<img\s+src\s*=\s*["'']([^"'']+)["'']\s*/*>',
-     "\b(?<username>[A-Z0-9._%+-]+)@(?<domain>[A-Z0-9.-]+\.[A-Z]+)\b", "\.\d{2}\.",
-      "^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$", 
-      "^([0]?[1-9]|[1][0-2])[./-]([0]?[1-9]|[1|2][0-9]|[3][0|1])[./-]([0-9]{4}|[0-9]{2})$", "^[0-2][0-3]:[0-5][0-9]$",
-       "^E[0-9a-fA-F]{10}.log$", "This\sis\sthe\send", "These are the times to test men's minds", 
-       "^\w{2,20}$", '(?i)DC=\w{1,}?\b', '((s-)*)\w*\.\w*@(brand((lab)*)|)\.com', 
-       "(?i:^(ABC|DEF|GHI|JKL)(MS(5|6)(2|4|5)((0)*)(0|1)((D)*)|\-\w{7})$)", 
-       "^sip:([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$", 
-       "any character or a newline repeated zero or more times", "^(.*?)\.(?i:RDP)$", 
-       "#\sSIG\s#\sBegin\ssignature\sblock(.|\n)*(.|\n)*#\sSIG\s#\sEnd\ssignature\sblock", 
-       "\w+((\s)*)\.\n((\r)*)((\s)*)\w+" ; 
-    $Summary = @() ; 
-    foreach($rgx in $rgxs){
-      $rpt = @{name= $rgx; score=$null} ; 
-      $rpt.score = TEST-isregexpattern $rgx -ReturnScore -verbose ; 
-      $Summary+= [pscustomobject]$rpt ; 
-    } ; 
-    $Summary  ; 
+    PS> $rgxs ='(one()|two())-and-(three\2|four\3)' , '<img\s+src\s*=\s*["'']([^"'']+)["'']\s*/*>',
+    PS>  "\b(?<username>[A-Z0-9._%+-]+)@(?<domain>[A-Z0-9.-]+\.[A-Z]+)\b", "\.\d{2}\.",
+    PS>   "^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$", 
+    PS>   "^([0]?[1-9]|[1][0-2])[./-]([0]?[1-9]|[1|2][0-9]|[3][0|1])[./-]([0-9]{4}|[0-9]{2})$", "^[0-2][0-3]:[0-5][0-9]$",
+    PS>    "^E[0-9a-fA-F]{10}.log$", "This\sis\sthe\send", "These are the times to test men's minds", 
+    PS>    "^\w{2,20}$", '(?i)DC=\w{1,}?\b', '((s-)*)\w*\.\w*@(brand((lab)*)|)\.com', 
+    PS>    "(?i:^(ABC|DEF|GHI|JKL)(MS(5|6)(2|4|5)((0)*)(0|1)((D)*)|\-\w{7})$)", 
+    PS>    "^sip:([0-9a-zA-Z]+[-._+&])*[0-9a-zA-Z]+@([-0-9a-zA-Z]+[.])+[a-zA-Z]{2,6}$", 
+    PS>    "any character or a newline repeated zero or more times", "^(.*?)\.(?i:RDP)$", 
+    PS>    "#\sSIG\s#\sBegin\ssignature\sblock(.|\n)*(.|\n)*#\sSIG\s#\sEnd\ssignature\sblock", 
+    PS>    "\w+((\s)*)\.\n((\r)*)((\s)*)\w+" ; 
+    PS> $Summary = @() ; 
+    PS> foreach($rgx in $rgxs){
+    PS>   $rpt = @{name= $rgx; score=$null} ; 
+    PS>   $rpt.score = TEST-isregexpattern $rgx -ReturnScore -verbose ; 
+    PS>   $Summary+= [pscustomobject]$rpt ; 
+    PS> } ; 
+    PS> $Summary  ; 
     Quick test suite to calibarate appropriate 'Threshold' for this function: Runs an array of variant regex strings through, 
     and reports on range of scores for comparison. 
     .LINK
@@ -2140,6 +2045,7 @@ Function test-IsRegexPattern {
 
 #*------^ test-IsRegexPattern.ps1 ^------
 
+
 #*------v test-IsRegexValid.ps1 v------
 Function test-IsRegexValid {
     <#
@@ -2179,18 +2085,19 @@ Function test-IsRegexValid {
 
 #*------^ test-IsRegexValid.ps1 ^------
 
-#*------v Test-Uri.ps1 v------
-function Test-Uri{
+
+#*------v test-IsUri.ps1 v------
+function test-IsUri{
     <#
     .SYNOPSIS
-    Test-Uri.ps1 - Validates a given Uri ; localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually
+    test-IsUri.ps1 - Validates a given Uri ; localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
     CreatedDate : 20201109-0833AM
-    FileName    : Test-Uri.ps1
+    FileName    : test-IsUri.ps1
     License     : [none specified]
     Copyright   : [none specified]
     Github      : https://github.com/tostka/verb-exo
@@ -2198,10 +2105,11 @@ function Test-Uri{
     AddedCredit : Microsoft (edited version of published commands in the module)
     AddedWebsite:	https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
     REVISIONS
+    * 1:11 PM 6/29/2022 renamed test-uri-> test-IsUri, aliased orig name
     * 2:08 PM 12/6/2021 ren'd UriString param to String, and added orig name as alias. Set CBH Output, and broader example; moving into verb-text, where it better fits.
     * 8:34 AM 11/9/2020 init
     .DESCRIPTION
-    Test-Uri.ps1 - localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually. Note this only validates https, not http (which will fail). 
+    test-IsUri.ps1 - localized verb-EXO vers of non-'$global:' helper funct from ExchangeOnlineManagement. The globals export fine, these don't and appear to need to be loaded manually. Note this only validates https, not http (which will fail). 
     .PARAMETER String
     String to be validated
     .PARAMETER PermitHttp
@@ -2211,10 +2119,10 @@ function Test-Uri{
     .OUTPUTS
     System.Boolean
     .EXAMPLE
-    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    test-IsUri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
     Stock call
     .EXAMPLE
-    Test-Uri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
+    test-IsUri -string https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2 
     Call that accepts either https or http scheme (default fails http://)
     .LINK
     https://github.com/tostka/verb-text
@@ -2222,6 +2130,7 @@ function Test-Uri{
     https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
     #>
     [CmdletBinding()]
+    [Alias('test-URI')]
     [OutputType([bool])]
     Param(
         # Uri to be validated
@@ -2238,18 +2147,21 @@ function Test-Uri{
     } ; 
 }
 
-#*------^ Test-Uri.ps1 ^------
+#*------^ test-IsUri.ps1 ^------
+
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-EscapedPSText,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,convertTo-EscapedPSText,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnwrappedPS,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedPS,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,Test-Uri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+
+
 
 
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUMns2f3eSUfz9QNIGWmdKhJkB
-# 1h2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU8gUXqQmiVoDnAmRBJq73FsZ3
+# EBCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2264,9 +2176,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBT/SBEH
-# JDtGxlQ6R2RJD6lNrW0tMzANBgkqhkiG9w0BAQEFAASBgHqvz7k1fQtIWuHGn78p
-# 9TDZo2pOzdFFk7pSDaM6MqpivoiMcDIz6jgSbvj0uKvOSeCE1UYQj45NK/UuEcKK
-# sy4ovLpG+x5Lg2UdIA42zr1Bc2GjdfHZRWmJb7BCjo38BaET1Yw02q+aRIvi6Tjt
-# LrXgrvcQtYaQ4T0/EpagR3z1
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTI94oI
+# 1fIlYndbplDmyzoSaDnbEDANBgkqhkiG9w0BAQEFAASBgCLPMPvE/m4kIjEaM/GH
+# svQAsIxqs4h1UkZ+04cD1xmCiHUK6urVXGwIQ9wO2PN7AihQjxiP1qmkktwwQ8Cl
+# 25kLGaV3Ilr1YdfUwB+yBv/uycxXuevS3E+1U1IhsMLwTzUMG0BmRh1cvmmLPPcd
+# s6Blj+Qg3e3s62kbScl/R7GP
 # SIG # End signature block
