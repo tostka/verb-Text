@@ -1,11 +1,11 @@
-﻿# verb-text.psm1
+﻿# verb-Text.psm1
 
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 4.3.0.0
+  Version     : 5.0.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -27,8 +27,6 @@
     $script:ModuleRoot = $PSScriptRoot ;
     $script:ModuleVersion = (Import-PowerShellDataFile -Path (get-childitem $script:moduleroot\*.psd1).fullname).moduleversion ;
     $runningInVsCode = $env:TERM_PROGRAM -eq 'vscode' ;
-    $Psv2PublicExcl = @() ;
-    $Psv2PrivateExcl = @() ;
 
 #*======v FUNCTIONS v======
 
@@ -851,6 +849,7 @@ Function convertTo-PSHelpExample {
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,Code,Development,CommentBasedHelp
     REVISIONS
+    * 11:52 AM 9/8/2022 fix: #106 was writing codeblock with `n EOL, which resulted in [LF], instead of "proper" Win [CR][LF]. Pester complains, so updated to wright `n`r as EOL instead
     * 12:37 PM 6/1 7/2022 updated CBH, moved from vert-text -> verb-dev
     * 1:50 PM 3/1/2022 init
     .DESCRIPTION
@@ -938,7 +937,9 @@ Function convertTo-PSHelpExample {
         if($nopad){
             $CBH += "$($sCBHPrompt) $($_)" ;
         } else {
-            $CBH += "$($sCBHPrompt) $($_)`n" ;
+            #$CBH += "$($sCBHPrompt) $($_)`n" ;
+            # above was creating examples with EOL [LF] vs [CR][LF], use both (Pester no-likey)
+            $CBH += "$($sCBHPrompt) $($_)`r`n" ;
         } ; 
     } ; 
     $CBH += "SAMPLEOUTPUT" ; 
@@ -2160,8 +2161,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU8gUXqQmiVoDnAmRBJq73FsZ3
-# EBCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkon79LQIEa+u3RC20fUarJ1/
+# VrCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2176,9 +2177,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTI94oI
-# 1fIlYndbplDmyzoSaDnbEDANBgkqhkiG9w0BAQEFAASBgCLPMPvE/m4kIjEaM/GH
-# svQAsIxqs4h1UkZ+04cD1xmCiHUK6urVXGwIQ9wO2PN7AihQjxiP1qmkktwwQ8Cl
-# 25kLGaV3Ilr1YdfUwB+yBv/uycxXuevS3E+1U1IhsMLwTzUMG0BmRh1cvmmLPPcd
-# s6Blj+Qg3e3s62kbScl/R7GP
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRCmqQ7
+# obmiqsNADjKbf0PovkemgDANBgkqhkiG9w0BAQEFAASBgF4jlT4OH5mnTevS0wyr
+# DUKRAAunyqppA9DqZYgqWNyAIfEnJBArHV4xLsu1FwGeurt0kchulCOr6b8gfrPi
+# G+/QVukHPK68mNEMHMDuJ6mRPjXQHgWYwRX0c3hhmJG3x/FJAsU9ftlcZz7IVU5y
+# liXcXHf9lmKSwF+JTMk6tKek
 # SIG # End signature block

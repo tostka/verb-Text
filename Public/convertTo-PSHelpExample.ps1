@@ -15,6 +15,7 @@ Function convertTo-PSHelpExample {
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,Code,Development,CommentBasedHelp
     REVISIONS
+    * 11:52 AM 9/8/2022 fix: #106 was writing codeblock with `n EOL, which resulted in [LF], instead of "proper" Win [CR][LF]. Pester complains, so updated to wright `n`r as EOL instead
     * 12:37 PM 6/1 7/2022 updated CBH, moved from vert-text -> verb-dev
     * 1:50 PM 3/1/2022 init
     .DESCRIPTION
@@ -102,7 +103,9 @@ Function convertTo-PSHelpExample {
         if($nopad){
             $CBH += "$($sCBHPrompt) $($_)" ;
         } else {
-            $CBH += "$($sCBHPrompt) $($_)`n" ;
+            #$CBH += "$($sCBHPrompt) $($_)`n" ;
+            # above was creating examples with EOL [LF] vs [CR][LF], use both (Pester no-likey)
+            $CBH += "$($sCBHPrompt) $($_)`r`n" ;
         } ; 
     } ; 
     $CBH += "SAMPLEOUTPUT" ; 
