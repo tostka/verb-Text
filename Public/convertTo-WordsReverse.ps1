@@ -18,7 +18,8 @@ Function convertTo-WordsReverse {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    10:34 AM 11/19/2021 init
+    * 5:01 PM 4/6/2022 add name reverse example
+    * 10:34 AM 11/19/2021 init
     .DESCRIPTION
     convertTo-WordsReverse - Reverse the order of words in a sentance/phrase. 
     Included silly period-to-line-end code, to avoid parsing periods into mid-phrase, where in original text.    
@@ -27,27 +28,41 @@ Function convertTo-WordsReverse {
     .PARAMETER  lines
     Text to be reversed in word-order[-lines 'THESE are the times that try men's souls.']
     .EXAMPLE
-    "Those who would give up essential Liberty, to purchase a little temporary Safety, deserve neither Liberty nor Safety." | convertTo-WordsReverse ;
+    PS> "Those who would give up essential Liberty, to purchase a little temporary Safety, deserve neither Liberty nor Safety." | convertTo-WordsReverse ;
+    Safety nor Liberty neither deserve Safety, temporary little a purchase to Liberty, essential up give would who Those.
     Simple example reversing a phrase
     .EXAMPLE
-    $h=@"
+    PS> $h=@"
 Caesar had his Brutus, Charles the First his Cromwell; and George the Third
 - ['Treason!' cried the Speaker] -
 may profit by their example. 
 If this be treason, make the most of it. 
 ― Patrick Henry
 "@ ; 
-    convertTo-WordsReverse -lines $h -textonly -verbose; 
+    PS> convertTo-WordsReverse -lines $h -textonly -verbose; 
+        Third the George and Cromwell his First the Charles Brutus his had Caesar
+        Speaker the cried Treason
+        example their by profit may
+        it of most the make treason be this If
+        Henry Patrick
     Processing herestring block with TextOnly & verbose options. 
     .EXAMPLE
-    $h1=@"
+    PS> $h1=@"
 Some say the world will end in fire,
 Some say in ice.
 From what I've tasted of desire
 I hold with those who favor fire.
 "@ ; 
-    $h1 | convertTo-WordsReverse  ; 
+    PS> $h1 | convertTo-WordsReverse  ; 
+        fire, in end will world the say Some
+        ice in say Some.
+        desire of tasted I've what From.
+        fire favor who those with hold I.    
     Pipeline processing of herestring block 
+    .EXAMPLE
+    PS> ('Atticus Ross' | convertTo-WordsReverse) -replace ' ',', ' ;
+        Ross, Atticus 
+    Demo turning an 'FName Lname' string into 'Lname, Fname'
     .LINK
     https://github.com/tostka/verb-Text
     #>
