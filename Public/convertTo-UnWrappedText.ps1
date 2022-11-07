@@ -1,4 +1,4 @@
-#*------v Function convertTo-UnWrappedText v------
+﻿#*------v Function convertTo-UnWrappedText v------
 Function convertTo-UnWrappedText {
     <#
     .SYNOPSIS

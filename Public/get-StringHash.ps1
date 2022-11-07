@@ -1,4 +1,4 @@
-    #*------v Function get-StringHash v------
+﻿    #*------v Function get-StringHash v------
     function get-StringHash {
         <#
         .SYNOPSIS

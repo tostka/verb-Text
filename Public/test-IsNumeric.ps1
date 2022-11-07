@@ -1,4 +1,4 @@
-#*------v Function test-IsNumeric v------
+﻿#*------v Function test-IsNumeric v------
 Function test-IsNumeric {
     <#
     .SYNOPSIS

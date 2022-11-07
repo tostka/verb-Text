@@ -1,4 +1,4 @@
-#*------v Function test-IsRegexPattern v------
+﻿#*------v Function test-IsRegexPattern v------
 Function test-IsRegexPattern {
     <#
     .SYNOPSIS

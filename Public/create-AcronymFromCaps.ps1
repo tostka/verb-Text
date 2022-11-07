@@ -1,4 +1,4 @@
-#*------v Function create-AcronymFromCaps()  v------
+﻿#*------v Function create-AcronymFromCaps()  v------
 Function create-AcronymFromCaps {
     <#
     .SYNOPSIS

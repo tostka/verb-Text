@@ -1,4 +1,4 @@
-#*------v Function convertTo-QuotedList v------
+﻿#*------v Function convertTo-QuotedList v------
 Function convertTo-QuotedList {
     <#
     .SYNOPSIS

@@ -1,4 +1,4 @@
-#*------v Function convertTo-PSHelpExample v------
+﻿#*------v Function convertTo-PSHelpExample v------
 Function convertTo-PSHelpExample {
     <#
     .SYNOPSIS

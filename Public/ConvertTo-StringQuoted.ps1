@@ -1,4 +1,4 @@
-#*------v Function ConvertTo-StringQuoted v------
+﻿#*------v Function ConvertTo-StringQuoted v------
 Function ConvertTo-StringQuoted {
     <#
     .SYNOPSIS

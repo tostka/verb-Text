@@ -1,4 +1,4 @@
-#*------v Function test-IsRegexValid v------
+﻿#*------v Function test-IsRegexValid v------
 Function test-IsRegexValid {
     <#
     .SYNOPSIS

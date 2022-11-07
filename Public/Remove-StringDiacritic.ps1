@@ -1,4 +1,4 @@
-#*------v Function Remove-StringDiacritic v------
+ï»¿#*------v Function Remove-StringDiacritic v------
 function Remove-StringDiacritic {
     <#
     .SYNOPSIS
@@ -25,7 +25,7 @@ function Remove-StringDiacritic {
     Specifies the normalization form to use ;
     https://msdn.microsoft.com/en-us/library/system.text.normalizationform(v=vs.110).aspx
     .EXAMPLE
-    PS C:\> Remove-StringDiacritic "L'été de Raphaël" ;
+    PS C:\> Remove-StringDiacritic "L'ï¿½tï¿½ de Raphaï¿½l" ;
     L'ete de Raphael ;
     .LINK
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html

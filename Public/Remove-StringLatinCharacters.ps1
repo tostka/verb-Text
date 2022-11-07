@@ -1,4 +1,4 @@
-function Remove-StringLatinCharacters {
+﻿function Remove-StringLatinCharacters {
 <#
     .SYNOPSIS
     Remove-StringLatinCharacters() - Substitute Cyrillic characters into normal unaccented characters. Addon to Remove-Stringdiacriic, converts untouched Polish crossed-L to L. But doesn't proper change some german chars (rplcs german est-set with ? -> do Remove-StringDiacritic first, and it won't damage german).
