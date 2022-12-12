@@ -1,11 +1,11 @@
-﻿# verb-Text.psm1
+﻿# verb-text.psm1
 
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 5.0.0.0
+  Version     : 5.0.1.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -675,6 +675,41 @@ function convertTo-Base64String {
 #*------^ convertTo-Base64String.ps1 ^------
 
 
+#*------v convertto-Base64StringCommaQuoted.ps1 v------
+function convertto-Base64StringCommaQuoted{
+    <#
+    .SYNOPSIS
+    convertto-Base64StringCommaQuoted - Converts an array of strings Base64 string, then into a comma-quoted delimited string, and outputs the result to the clipboard
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-11-18
+    FileName    : convertto-Base64StringCommaQuoted
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text,csv
+    REVISIONS
+    * 5:27 PM 11/18/2022 init
+    .DESCRIPTION
+    convertto-Base64StringCommaQuoted - Converts an array of strings Base64 string, then into a comma-quoted delimited string, and outputs the result to the clipboard
+    .PARAMETER String
+    Array of strings to be converted
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()] 
+    PARAM([Parameter(ValueFromPipeline=$true)][string[]]$str) ;
+    BEGIN{$outs = @()}
+    PROCESS{[array]$outs += $str | %{[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($_))} ; }
+    END {'"' + $(($outs) -join '","') + '"' | out-string | set-clipboard } ; 
+}
+
+#*------^ convertto-Base64StringCommaQuoted.ps1 ^------
+
+
 #*------v ConvertTo-CamelCase.ps1 v------
 function ConvertTo-CamelCase {
     <#
@@ -1104,6 +1139,40 @@ function ConvertTo-SNAKE_CASE {
 #*------^ ConvertTo-SNAKE_CASE.ps1 ^------
 
 
+#*------v convertto-StringCommaQuote.ps1 v------
+function convertto-StringCommaQuote{
+    <#
+    .SYNOPSIS
+    convertto-StringCommaQuote - Converts an array of strings into a comma-quoted delimited string
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-11-18
+    FileName    : convertto-StringCommaQuote
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text,csv
+    REVISIONS
+    * 5:27 PM 11/18/2022 init
+    .DESCRIPTION
+    convertto-StringCommaQuote - Converts an array of strings into a comma-quoted delimited string
+    .PARAMETER String
+    Array of strings to be comma-quote delimited
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()] PARAM([Parameter(ValueFromPipeline=$true)][string[]]$String) ;
+    BEGIN{$outs = @()} 
+    PROCESS{[array]$outs += $String | foreach-object{$_} ; } 
+    END {'"' + $(($outs) -join '","') + '"' | out-string } ; 
+}
+
+#*------^ convertto-StringCommaQuote.ps1 ^------
+
+
 #*------v ConvertTo-StringQuoted.ps1 v------
 Function ConvertTo-StringQuoted {
     <#
@@ -1346,7 +1415,8 @@ Function convertTo-WordsReverse {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    10:34 AM 11/19/2021 init
+    * 5:01 PM 4/6/2022 add name reverse example
+    * 10:34 AM 11/19/2021 init
     .DESCRIPTION
     convertTo-WordsReverse - Reverse the order of words in a sentance/phrase. 
     Included silly period-to-line-end code, to avoid parsing periods into mid-phrase, where in original text.    
@@ -1355,27 +1425,41 @@ Function convertTo-WordsReverse {
     .PARAMETER  lines
     Text to be reversed in word-order[-lines 'THESE are the times that try men's souls.']
     .EXAMPLE
-    "Those who would give up essential Liberty, to purchase a little temporary Safety, deserve neither Liberty nor Safety." | convertTo-WordsReverse ;
+    PS> "Those who would give up essential Liberty, to purchase a little temporary Safety, deserve neither Liberty nor Safety." | convertTo-WordsReverse ;
+    Safety nor Liberty neither deserve Safety, temporary little a purchase to Liberty, essential up give would who Those.
     Simple example reversing a phrase
     .EXAMPLE
-    $h=@"
+    PS> $h=@"
 Caesar had his Brutus, Charles the First his Cromwell; and George the Third
 - ['Treason!' cried the Speaker] -
 may profit by their example. 
 If this be treason, make the most of it. 
 ― Patrick Henry
 "@ ; 
-    convertTo-WordsReverse -lines $h -textonly -verbose; 
+    PS> convertTo-WordsReverse -lines $h -textonly -verbose; 
+        Third the George and Cromwell his First the Charles Brutus his had Caesar
+        Speaker the cried Treason
+        example their by profit may
+        it of most the make treason be this If
+        Henry Patrick
     Processing herestring block with TextOnly & verbose options. 
     .EXAMPLE
-    $h1=@"
+    PS> $h1=@"
 Some say the world will end in fire,
 Some say in ice.
 From what I've tasted of desire
 I hold with those who favor fire.
 "@ ; 
-    $h1 | convertTo-WordsReverse  ; 
+    PS> $h1 | convertTo-WordsReverse  ; 
+        fire, in end will world the say Some
+        ice in say Some.
+        desire of tasted I've what From.
+        fire favor who those with hold I.    
     Pipeline processing of herestring block 
+    .EXAMPLE
+    PS> ('Atticus Ross' | convertTo-WordsReverse) -replace ' ',', ' ;
+        Ross, Atticus 
+    Demo turning an 'FName Lname' string into 'Lname, Fname'
     .LINK
     https://github.com/tostka/verb-Text
     #>
@@ -1691,7 +1775,7 @@ function Remove-StringDiacritic {
     Specifies the normalization form to use ;
     https://msdn.microsoft.com/en-us/library/system.text.normalizationform(v=vs.110).aspx
     .EXAMPLE
-    PS C:\> Remove-StringDiacritic "L'été de Raphaël" ;
+    PS C:\> Remove-StringDiacritic "L'�t� de Rapha�l" ;
     L'ete de Raphael ;
     .LINK
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
@@ -2153,7 +2237,7 @@ function test-IsUri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
 
 
 
@@ -2161,8 +2245,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkon79LQIEa+u3RC20fUarJ1/
-# VrCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUvRqNPS+oFXnnPKLc603osUm+
+# H4OgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2177,9 +2261,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRCmqQ7
-# obmiqsNADjKbf0PovkemgDANBgkqhkiG9w0BAQEFAASBgF4jlT4OH5mnTevS0wyr
-# DUKRAAunyqppA9DqZYgqWNyAIfEnJBArHV4xLsu1FwGeurt0kchulCOr6b8gfrPi
-# G+/QVukHPK68mNEMHMDuJ6mRPjXQHgWYwRX0c3hhmJG3x/FJAsU9ftlcZz7IVU5y
-# liXcXHf9lmKSwF+JTMk6tKek
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQY3buS
+# YtRpwQ9xWYlWRLgSNT3b7TANBgkqhkiG9w0BAQEFAASBgAAUprJv8MvJH94v9+v8
+# cwxuT+z8vprAOZolMioGo4HEvCliPfvNckRGigoFFP15lMuTRo+JElsw0x1kd91d
+# P96cxrSdLFNHWSLkai7sxFRDx+49m39r6u5o7Tusohf08ZCBpu3JEUWFGwpE1UeA
+# pxYk3wXAiuR00NvtUCXr1qHX
 # SIG # End signature block
