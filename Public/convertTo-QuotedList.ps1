@@ -15,6 +15,7 @@ Function convertTo-QuotedList {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text
     REVISIONS
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 1:16 PM 11/22/2021 added presplit to lines; upgraded to adv function; ren'd quote-list -> convertTo-QuotedList ; made actually functional (wasn't, was a half-finished copy of quote-text)
     * 8:27 PM 5/23/2014
     .DESCRIPTION
@@ -33,6 +34,6 @@ Function convertTo-QuotedList {
         $List = $List.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;  
     } ; 
     $List |foreach-object {
-         "`"$($PSItem)`""  ; 
+         "`"$($_)`""  ; 
     } ; 
 } ; #*------^ END Function convertTo-QuotedList ^------
