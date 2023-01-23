@@ -18,6 +18,7 @@ Function convertTo-WordsReverse {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 5:01 PM 4/6/2022 add name reverse example
     * 10:34 AM 11/19/2021 init
     .DESCRIPTION
@@ -93,17 +94,17 @@ I hold with those who favor fire.
     $lines | foreach-object {
         if($TextOnly){
             write-verbose "(-TextOnly, removing all but:$($rgxNonText))"
-            $l = $psitem -replace $rgxNonText,'' ;
+            $l = $_ -replace $rgxNonText,'' ;
         } else {
-            $l = $psitem ; 
+            $l = $_ ; 
         } ; 
         [boolean]$hasPeriod = $false ; 
-        write-verbose $PSItem ; 
+        write-verbose $_ ; 
         if($l -match '\.$'){
             $hashPeriod = $true ;
             $l = [regex]::match($l,'(.*)\.').captures[0].groups[1].value ;
         } else { 
-            #$l = $PsItem 
+            #$l = $_ 
         } ; 
         $array = $l -Split '\s' 
         #$array[($l.Count-1)..0] -join ' '
