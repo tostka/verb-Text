@@ -15,6 +15,7 @@ function Remove-StringDiacritic {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text,String,ForeignLanguage,Language
     REVISIONS
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 1:50 PM 11/22/2021 added param pipeline support & hepmessage on params
     * Mar 22, 2019, init
     .DESCRIPTION
@@ -47,8 +48,8 @@ function Remove-StringDiacritic {
             # Convert the String to CharArray
             $normalized.ToCharArray() |
             ForEach-Object -Process {
-                if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($psitem) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
-                    [void]$NewString.Append($psitem) ;
+                if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($_) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
+                    [void]$NewString.Append($_) ;
                 } ;
             } ;
             #Combine the new string chars
