@@ -12,7 +12,7 @@
 RootModule = 'verb-Text.psm1'
 
 # Version number of this module.
-ModuleVersion = '5.0.1'
+ModuleVersion = '5.1.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -148,6 +148,8 @@ PrivateData = @{
 # KGwTonJGJc+d/+5PqAfbeTFDk4GY4zvd9NGkB5eridmSfYvK677BRF/giOp85S9v
 # lWl0LTjpDfBm4JgwchvZBsxB
 # SIG # End signature block
+
+
 
 
 

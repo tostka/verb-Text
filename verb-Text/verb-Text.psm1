@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 5.0.1.0
+  Version     : 5.1.2.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -1015,6 +1015,7 @@ Function convertTo-QuotedList {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text
     REVISIONS
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 1:16 PM 11/22/2021 added presplit to lines; upgraded to adv function; ren'd quote-list -> convertTo-QuotedList ; made actually functional (wasn't, was a half-finished copy of quote-text)
     * 8:27 PM 5/23/2014
     .DESCRIPTION
@@ -1033,7 +1034,7 @@ Function convertTo-QuotedList {
         $List = $List.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;  
     } ; 
     $List |foreach-object {
-         "`"$($PSItem)`""  ; 
+         "`"$($_)`""  ; 
     } ; 
 }
 
@@ -1415,6 +1416,7 @@ Function convertTo-WordsReverse {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 5:01 PM 4/6/2022 add name reverse example
     * 10:34 AM 11/19/2021 init
     .DESCRIPTION
@@ -1490,17 +1492,17 @@ I hold with those who favor fire.
     $lines | foreach-object {
         if($TextOnly){
             write-verbose "(-TextOnly, removing all but:$($rgxNonText))"
-            $l = $psitem -replace $rgxNonText,'' ;
+            $l = $_ -replace $rgxNonText,'' ;
         } else {
-            $l = $psitem ; 
+            $l = $_ ; 
         } ; 
         [boolean]$hasPeriod = $false ; 
-        write-verbose $PSItem ; 
+        write-verbose $_ ; 
         if($l -match '\.$'){
             $hashPeriod = $true ;
             $l = [regex]::match($l,'(.*)\.').captures[0].groups[1].value ;
         } else { 
-            #$l = $PsItem 
+            #$l = $_ 
         } ; 
         $array = $l -Split '\s' 
         #$array[($l.Count-1)..0] -join ' '
@@ -1765,6 +1767,7 @@ function Remove-StringDiacritic {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text,String,ForeignLanguage,Language
     REVISIONS
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 1:50 PM 11/22/2021 added param pipeline support & hepmessage on params
     * Mar 22, 2019, init
     .DESCRIPTION
@@ -1797,8 +1800,8 @@ function Remove-StringDiacritic {
             # Convert the String to CharArray
             $normalized.ToCharArray() |
             ForEach-Object -Process {
-                if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($psitem) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
-                    [void]$NewString.Append($psitem) ;
+                if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($_) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
+                    [void]$NewString.Append($_) ;
                 } ;
             } ;
             #Combine the new string chars
@@ -2245,8 +2248,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUvRqNPS+oFXnnPKLc603osUm+
-# H4OgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1MifEypxdhMMvq8cOowfrz3R
+# xP2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2261,9 +2264,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQY3buS
-# YtRpwQ9xWYlWRLgSNT3b7TANBgkqhkiG9w0BAQEFAASBgAAUprJv8MvJH94v9+v8
-# cwxuT+z8vprAOZolMioGo4HEvCliPfvNckRGigoFFP15lMuTRo+JElsw0x1kd91d
-# P96cxrSdLFNHWSLkai7sxFRDx+49m39r6u5o7Tusohf08ZCBpu3JEUWFGwpE1UeA
-# pxYk3wXAiuR00NvtUCXr1qHX
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRk80oF
+# PQUAC6FHUjmeDiq2KDVzzzANBgkqhkiG9w0BAQEFAASBgCuWAfk0qilIM6uCAw4B
+# sOPsvHes5noPZNFi4N6rygJlZ2g91/DtwzAfLWbyIlUeQ7Sr38xioqqUZIniJAae
+# sOof19ZogLJ9P2uhON9adLb8XpFDGV9vRWWR7hxennKEJCCxxsJr9fumyB0k+X/t
+# j8DpuMcXS5v/bjMo4hKNlcoG
 # SIG # End signature block
