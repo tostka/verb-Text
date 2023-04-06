@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 5.1.2.0
+  Version     : 5.1.3.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -884,6 +884,7 @@ Function convertTo-PSHelpExample {
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,Code,Development,CommentBasedHelp
     REVISIONS
+    * 1:36 PM 4/5/2023 suddenly set-clipboard -value breaks, param now shows as -Text: retooled splits, remove blank lines, coerce array and then coerse to text before writing to set-clipboard -text
     * 11:52 AM 9/8/2022 fix: #106 was writing codeblock with `n EOL, which resulted in [LF], instead of "proper" Win [CR][LF]. Pester complains, so updated to wright `n`r as EOL instead
     * 12:37 PM 6/1 7/2022 updated CBH, moved from vert-text -> verb-dev
     * 1:50 PM 3/1/2022 init
@@ -936,6 +937,12 @@ Function convertTo-PSHelpExample {
     } else {
         write-verbose "ScriptBlock:$($ScriptBlock)" ;
     } ;
+
+    # we need split lines to prefix with PS> (and no blank lines)
+    if(($ScriptBlock |  measure).count -eq 1){
+        [array]$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ;
+    } ; 
+
     # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
     # rgx replace to prefix all special chars, to make them literals, before doing any text -replace (graveaccent escape ea)
     #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
@@ -954,40 +961,48 @@ Function convertTo-PSHelpExample {
         } ; 
     } ;
     
-    if($scriptblock -isnot  [array]){
+    # ensure we have an array of separate lines to prefix - no empties
+    if($scriptblock -isnot  [array] -OR (($ScriptBlock |  measure).count -eq 1)){
         write-verbose "(`$ScriptBlock non-Array, splitting on NewLines)" ; 
-        # split into lines - looks like a wrapped block, but it's one line with crlfs - need each to loop and append prefixes
-        #$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine)
-        #$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ; 
-        $ScriptBlock = $ScriptBlock.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;
+        # split into lines - looks like a wrapped block, but it's one line with crlfs - need each to loop and append prefixes, so split it out
+        #[array]$ScriptBlock = $ScriptBlock.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;
+        # above results in PS> [blank], drop the empties
+        [array]$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ;
     } ; 
-
     
+    # coercing every assign into array, and typing the aggreg
     if($nopad){
-        [array]$CBH = "$($sCBHKeyword)"
+        [array]$CBH = @("$($sCBHKeyword)")
     } else {
-        [array]$CBH = "$($sCBHKeyword)`n"
+        [array]$CBH = @("$($sCBHKeyword)`n")
     } ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {
-        if($nopad){
-            $CBH += "$($sCBHPrompt) $($_)" ;
-        } else {
-            #$CBH += "$($sCBHPrompt) $($_)`n" ;
-            # above was creating examples with EOL [LF] vs [CR][LF], use both (Pester no-likey)
-            $CBH += "$($sCBHPrompt) $($_)`r`n" ;
+    $ScriptBlock = @(
+        $ScriptBlock | Foreach-Object {
+            if($nopad){
+                @($CBH += "$($sCBHPrompt) $($_)") 
+            } else {
+                #$CBH += "$($sCBHPrompt) $($_)`n" ;
+                # above was creating examples with EOL [LF] vs [CR][LF], use both (Pester no-likey)
+                @($CBH += "$($sCBHPrompt) $($_)`r`n" )
+            }  
         } ; 
-    } ; 
-    $CBH += "SAMPLEOUTPUT" ; 
-    $CBH += "DESCRIPTION" ; 
-    
+    ) ; 
+    $CBH += @("SAMPLEOUTPUT") ; 
+    $CBH += @("DESCRIPTION") ; 
+
     # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
     #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
-    # wrapper function
-    $CBH=convertFrom-EscapedPSText -ScriptBlock $CBH -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
+    # wrapper function: 
+    $CBH=convertFrom-EscapedPSText -ScriptBlock $CBH -verbose:$($VerbosePreference -eq "Continue") ;  ;  
     if($fromCB){
         write-host "(sending results back to clipboard)" ;
         #$CBH | out-clipboard ; 
-        set-clipboard -value $CBH ;
+        # 4/5/2023: suddenly set-clipboard -value breaks, param now shows as -Text [facepalm]
+        <# -Files <FileSystemInfo[]>,-Html <String>,-Image <Image>,-Rtf <String>,-Text <String> #>
+        # try default positional # nope, param error
+        #set-clipboard $CBH ;
+        # coerce system.array to string and use -text
+        set-clipboard -text ($cbh | out-string) ; 
     } else { ; 
         # or to pipeline
         write-verbose "(sending results to pipeline)" ;
@@ -2248,8 +2263,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1MifEypxdhMMvq8cOowfrz3R
-# xP2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUjxgrHcApTRZm/iFKc5o0bJpi
+# +UOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2264,9 +2279,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRk80oF
-# PQUAC6FHUjmeDiq2KDVzzzANBgkqhkiG9w0BAQEFAASBgCuWAfk0qilIM6uCAw4B
-# sOPsvHes5noPZNFi4N6rygJlZ2g91/DtwzAfLWbyIlUeQ7Sr38xioqqUZIniJAae
-# sOof19ZogLJ9P2uhON9adLb8XpFDGV9vRWWR7hxennKEJCCxxsJr9fumyB0k+X/t
-# j8DpuMcXS5v/bjMo4hKNlcoG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTyddEn
+# tvmfkwo9xWiAUZaFSsb2ZDANBgkqhkiG9w0BAQEFAASBgKai87y9uxVzSvbJVvWk
+# E1ZwM9cJx1EasIP0hdLCmAduMd5KiZxD92JZgp1iLYGS3FmlVj1q0q5vpd2aZwfj
+# JCm9Hbyhmd/Mhumv1wR2DOOtieqpqBMkeUbKd8TGF/DZh3zEPfOuK3vnpUGHTGnS
+# VImAHvbI8SoZuZPybwNBujsB
 # SIG # End signature block
