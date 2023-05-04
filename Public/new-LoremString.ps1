@@ -12,21 +12,29 @@ function new-LoremString {
     CreatedDate : 2023-
     FileName    : new-LoremString.ps1
     License     : (Non asserted)
-    Copyright   : (c) 2016 Adam Driscoll. All rights reserved.
+    Copyright   : (Non asserted)
     Github      : https://github.com/tostka/verb-XXX
     Tags        : Powershell
     AddedCredit : Adam Driscoll
     AddedWebsite: https://www.powershellgallery.com/packages/LoremIpsum/1.0
     AddedTwitter: URL
     REVISIONS
-    * 9:32 AM 5/4/2023 Took AD's basic idea (stringbuilder assembly on looping 
+    * 12:47 PM 5/4/2023 Took AD's basic idea (stringbuilder assembly on looping 
         array), and reworked the logic a bit, primarily to require less inputs to get 
         any output; defaulted some params (to output a default 6-word phrase), expanded 
         CBH, filled out param specs, added trailing explicit write-output; added 
-        verbose outputs; dbl CR between paras; Capped 1st char of ea Sentance.
+        verbose outputs; dbl CR between paras; Capped 1st char of ea Sentance; 
+        added -AltLexicon & -NoLorem params; range of extra CBH examples.
     * 4/4/16 AD's posted PSG vers 1.0 
     .DESCRIPTION
     new-LoremString - Creates a new Lorem Ipsum string with the specified characteristics. 
+
+    By default, without parameters, outputs a six-word random Lorem-based sentance.
+
+    The -AltLexicon parameter is prestocked with 100 words from Google's [100 Random Words - This Site Is Totally Random - Google Sites](https://sites.google.com/site/thissiteistotallyrandom/100-random-words)
+    and are used as the word source with the -NoLorem parameter. 
+    This parameter can also be specified on the command line with a custom string array of other words.
+
     .PARAMETER minWords
     Min number of words to be returned[-minwords 5]
     .PARAMETER .PARAMETER maxWords
@@ -37,15 +45,29 @@ function new-LoremString {
     Max number of sentances to be returned[-maxSentences 3]
     .PARAMETER numParagraphs
     Number of paragraphs to be returned[-numParagraphs 2]
+    .PARAMETER NoLorem
+    Switch to use non-Lorem-based words (random 100 words)[-NoLorem]
+    .PARAMETER AltLexicon
+    String Array of random words to use with -NoLorem switch (prepopulated with 100 random words from https://sites.google.com/site/thissiteistotallyrandom/100-random-words)[-AltLexicon 'word1','word2']
     .INPUTS
     None. Does not accepted piped input.
     .OUTPUTS
     System.String
     .EXAMPLE
-    PS> new-loremstring -minWords 12
+    PS> new-loremstring -minWords 12 ;
+
+        Dolore erat elit diam nonummy dolore ipsum laoreet elit diam laoreet tincidunt. 
+
     Output a single 12 word sentance. 
     .EXAMPLE
+    PS> new-loremstring -minWords 15 -NoLorem ;
+
+        Prison juice moon frog computer flying hyperlink element cords mediocre moon zebra home cords final. 
+
+    Output a single 15 word sentance using the alt non-Lorem-text-based word list
+    .EXAMPLE
     PS> new-loremstring -minWords 4 -maxWords 8 -minSentences 3 -maxSentences 5 -numParagraphs 2 ; 
+
         Elit consectetuer elit magna. Euismod ut consectetuer ut. Sit elit elit ut. 
 
         Elit aliquam ut elit. Erat tincidunt nibh euismod. Elit nibh nibh nibh. 
@@ -103,12 +125,23 @@ function new-LoremString {
         [Parameter(HelpMessage="Max number of sentances to be returned[-maxSentences 3]")]
             [int]$maxSentences, 
         [Parameter(HelpMessage="Number of paragraphs to be returned(defaults to 1)[-numParagraphs 2]")]
-            [int]$numParagraphs = 1
+            [int]$numParagraphs = 1,
+        [Parameter(HelpMessage="Switch to use non-Lorem-based words (random 100 words)[-NoLorem]")]
+            [switch]$NoLorem, 
+        [Parameter(HelpMessage="String Array of random words to use with -NoLorem switch (prepopulated with 100 random words from https://sites.google.com/site/thissiteistotallyrandom/100-random-words)[-AltLexicon 'word1','word2']")]
+            [string[]]$AltLexicon = 'sausage','blubber','pencil','cloud','moon','water','computer','school','network','hammer','walking','violently','mediocre','literature','chair','two','window','cords','musical','zebra','xylophone','penguin','home','dog','final','ink','teacher','fun','website','banana','uncle','softly','mega','ten','awesome','attatch','blue','internet','bottle','tight','zone','tomato','prison','hydro','cleaning','telivision','send','frog','cup','book','zooming','falling','evily','gamer','lid','juice','moniter','captain','bonding','loudly','thudding','guitar','shaving','hair','soccer','water','racket','table','late','media','desktop','flipper','club','flying','smooth','monster','purple','guardian','bold','hyperlink','presentation','world','national','comment','element','magic','lion','sand','crust','toast','jam','hunter','forest','foraging','silently','tawesomated','joshing','pong'
     ) ;
     $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
     write-verbose "`$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
 
-    $words = "lorem;ipsum;dolor;sit;amet;consectetuer;adipiscing;elit;sed;diam;nonummy;nibh;euismod;tincidunt;ut;laoreet;dolore;magna;aliquam;erat".split(';') ;
+    $lex = "lorem;ipsum;dolor;sit;amet;consectetuer;adipiscing;elit;sed;diam;nonummy;nibh;euismod;tincidunt;ut;laoreet;dolore;magna;aliquam;erat".split(';') ;
+    # seed this with a fresh random list from: https://sites.google.com/site/thissiteistotallyrandom/100-random-words
+
+    if(-not $NoLorem){ $words = $lex } 
+    else {
+        write-host "(using non-Lorum 100-word seed list)" ; 
+        $words = $AltLexicon ;
+    } ; 
 
     if (($minWords -AND ($maxWords -gt 0)) -AND ($minWords -gt $maxWords)){
         throw "MinWords cannot be greater than MaxWords." ; 
