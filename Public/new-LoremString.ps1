@@ -13,22 +13,22 @@ function new-LoremString {
     FileName    : new-LoremString.ps1
     License     : (Non asserted)
     Copyright   : (Non asserted)
-    Github      : https://github.com/tostka/verb-XXX
+    Github      : https://github.com/tostka/verb-TEXT
     Tags        : Powershell
     AddedCredit : Adam Driscoll
     AddedWebsite: https://www.powershellgallery.com/packages/LoremIpsum/1.0
-    AddedTwitter: URL
+    AddedTwitter: @adamdriscoll
     REVISIONS
     * 12:47 PM 5/4/2023 Took AD's basic idea (stringbuilder assembly on looping 
-        array), and reworked the logic a bit, primarily to require less inputs to get 
-        any output; defaulted some params (to output a default 6-word phrase), expanded 
+        array), and reworked the logic, primarily to require less inputs to get 
+        any output; defaulted some params, coereced others around inputs, expanded 
         CBH, filled out param specs, added trailing explicit write-output; added 
         verbose outputs; dbl CR between paras; Capped 1st char of ea Sentance; 
         added -AltLexicon & -NoLorem params; range of extra CBH examples.
     * 4/4/16 AD's posted PSG vers 1.0 
     .DESCRIPTION
     new-LoremString - Creates a new Lorem Ipsum string with the specified characteristics. 
-
+    
     By default, without parameters, outputs a six-word random Lorem-based sentance.
 
     The -AltLexicon parameter is prestocked with 100 words from Google's [100 Random Words - This Site Is Totally Random - Google Sites](https://sites.google.com/site/thissiteistotallyrandom/100-random-words)
@@ -36,19 +36,19 @@ function new-LoremString {
     This parameter can also be specified on the command line with a custom string array of other words.
 
     .PARAMETER minWords
-    Min number of words to be returned[-minwords 5]
-    .PARAMETER .PARAMETER maxWords
+    Min number of words to be returned (defaults to 6)[-minwords 5]
+    .PARAMETER maxWords
     Max number of words to be returned[-maxwords 7]
     .PARAMETER minSentences
-    Min number of sentances to be returned[-minSentences 1]
+    Min number of sentances to be returned(defaults to 1)[-minSentences 1]
     .PARAMETER maxSentences
     Max number of sentances to be returned[-maxSentences 3]
     .PARAMETER numParagraphs
-    Number of paragraphs to be returned[-numParagraphs 2]
+    Number of paragraphs to be returned(defaults to 1)[-numParagraphs 2]
     .PARAMETER NoLorem
     Switch to use non-Lorem-based words (random 100 words)[-NoLorem]
     .PARAMETER AltLexicon
-    String Array of random words to use with -NoLorem switch (prepopulated with 100 random words from https://sites.google.com/site/thissiteistotallyrandom/100-random-words)[-AltLexicon 'word1','word2']
+    String array of random words to use with -NoLorem switch (prepopulated with 100 random words from https://sites.google.com/site/thissiteistotallyrandom/100-random-words)[-AltLexicon 'word1','word2']
     .INPUTS
     None. Does not accepted piped input.
     .OUTPUTS
@@ -74,8 +74,7 @@ function new-LoremString {
 
     Generate two random paragraphs of 3-5 sentances with 4-8 word each.
     .EXAMPLE
-    PS> $ret = new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 ; 
-    PS> $ret | wrap-text -Characters 80 ; 
+    PS> new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 | wrap-text -Characters 80 ; 
 
         Ut erat magna dolor amet magna ipsum erat. Nonummy laoreet nonummy diam erat
         lorem ipsum adipiscing. Ut nibh amet sed euismod magna diam nibh. Ut euismod
@@ -109,14 +108,13 @@ function new-LoremString {
     $block += "`n`r" ; 
     $block += new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 ;
     $block | wrap-text -char 80 ; 
-    Demo building a mixed case 'post' with title of dummy text, word wrapped.
+    Demo building a mixed case 'post' with title of dummy text, word wrapped. Uses my verb-Text module convertTo-Titlecase. 
     .LINK
     https://github.com/tostka/verb-text
-    .LINK
     #>
     [CmdletBinding()]
     PARAM(
-        [Parameter(HelpMessage="Min number of words to be returned (defaults to 6, the base phrase)[-minwords 5]")]
+        [Parameter(HelpMessage="Min number of words to be returned (defaults to 6)[-minwords 5]")]
             [int]$minWords = 6, 
         [Parameter(HelpMessage="Max number of words to be returned[-maxwords 7]")]
             [int]$maxWords, 
