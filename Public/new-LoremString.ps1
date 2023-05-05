@@ -65,6 +65,7 @@ function new-LoremString {
         Prison juice moon frog computer flying hyperlink element cords mediocre moon zebra home cords final. 
 
     Output a single 15 word sentance using the alt non-Lorem-text-based word list
+    
     .EXAMPLE
     PS> new-loremstring -minWords 4 -maxWords 8 -minSentences 3 -maxSentences 5 -numParagraphs 2 ; 
 
