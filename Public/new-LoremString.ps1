@@ -19,6 +19,7 @@ function new-LoremString {
     AddedWebsite: https://www.powershellgallery.com/packages/LoremIpsum/1.0
     AddedTwitter: @adamdriscoll
     REVISIONS
+    * 1:25 PM 6/1/2023 fixed param $AltLexicon; wrapped in @() forced array.
     * 12:47 PM 5/4/2023 Took AD's basic idea (stringbuilder assembly on looping 
         array), and reworked the logic, primarily to require less inputs to get 
         any output; defaulted some params, coereced others around inputs, expanded 
@@ -128,7 +129,7 @@ function new-LoremString {
         [Parameter(HelpMessage="Switch to use non-Lorem-based words (random 100 words)[-NoLorem]")]
             [switch]$NoLorem, 
         [Parameter(HelpMessage="String Array of random words to use with -NoLorem switch (prepopulated with 100 random words from https://sites.google.com/site/thissiteistotallyrandom/100-random-words)[-AltLexicon 'word1','word2']")]
-            [string[]]$AltLexicon = 'sausage','blubber','pencil','cloud','moon','water','computer','school','network','hammer','walking','violently','mediocre','literature','chair','two','window','cords','musical','zebra','xylophone','penguin','home','dog','final','ink','teacher','fun','website','banana','uncle','softly','mega','ten','awesome','attatch','blue','internet','bottle','tight','zone','tomato','prison','hydro','cleaning','telivision','send','frog','cup','book','zooming','falling','evily','gamer','lid','juice','moniter','captain','bonding','loudly','thudding','guitar','shaving','hair','soccer','water','racket','table','late','media','desktop','flipper','club','flying','smooth','monster','purple','guardian','bold','hyperlink','presentation','world','national','comment','element','magic','lion','sand','crust','toast','jam','hunter','forest','foraging','silently','tawesomated','joshing','pong'
+            [string[]]$AltLexicon = @('sausage','blubber','pencil','cloud','moon','water','computer','school','network','hammer','walking','violently','mediocre','literature','chair','two','window','cords','musical','zebra','xylophone','penguin','home','dog','final','ink','teacher','fun','website','banana','uncle','softly','mega','ten','awesome','attatch','blue','internet','bottle','tight','zone','tomato','prison','hydro','cleaning','telivision','send','frog','cup','book','zooming','falling','evily','gamer','lid','juice','moniter','captain','bonding','loudly','thudding','guitar','shaving','hair','soccer','water','racket','table','late','media','desktop','flipper','club','flying','smooth','monster','purple','guardian','bold','hyperlink','presentation','world','national','comment','element','magic','lion','sand','crust','toast','jam','hunter','forest','foraging','silently','tawesomated','joshing','pong')
     ) ;
     $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
     write-verbose "`$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
