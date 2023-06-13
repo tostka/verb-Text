@@ -1,11 +1,11 @@
-﻿# verb-Text.psm1
+﻿# verb-text.psm1
 
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 5.0.0.0
+  Version     : 5.1.3.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -675,6 +675,41 @@ function convertTo-Base64String {
 #*------^ convertTo-Base64String.ps1 ^------
 
 
+#*------v convertto-Base64StringCommaQuoted.ps1 v------
+function convertto-Base64StringCommaQuoted{
+    <#
+    .SYNOPSIS
+    convertto-Base64StringCommaQuoted - Converts an array of strings Base64 string, then into a comma-quoted delimited string, and outputs the result to the clipboard
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-11-18
+    FileName    : convertto-Base64StringCommaQuoted
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text,csv
+    REVISIONS
+    * 5:27 PM 11/18/2022 init
+    .DESCRIPTION
+    convertto-Base64StringCommaQuoted - Converts an array of strings Base64 string, then into a comma-quoted delimited string, and outputs the result to the clipboard
+    .PARAMETER String
+    Array of strings to be converted
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()] 
+    PARAM([Parameter(ValueFromPipeline=$true)][string[]]$str) ;
+    BEGIN{$outs = @()}
+    PROCESS{[array]$outs += $str | %{[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($_))} ; }
+    END {'"' + $(($outs) -join '","') + '"' | out-string | set-clipboard } ; 
+}
+
+#*------^ convertto-Base64StringCommaQuoted.ps1 ^------
+
+
 #*------v ConvertTo-CamelCase.ps1 v------
 function ConvertTo-CamelCase {
     <#
@@ -849,6 +884,7 @@ Function convertTo-PSHelpExample {
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,Code,Development,CommentBasedHelp
     REVISIONS
+    * 1:36 PM 4/5/2023 suddenly set-clipboard -value breaks, param now shows as -Text: retooled splits, remove blank lines, coerce array and then coerse to text before writing to set-clipboard -text
     * 11:52 AM 9/8/2022 fix: #106 was writing codeblock with `n EOL, which resulted in [LF], instead of "proper" Win [CR][LF]. Pester complains, so updated to wright `n`r as EOL instead
     * 12:37 PM 6/1 7/2022 updated CBH, moved from vert-text -> verb-dev
     * 1:50 PM 3/1/2022 init
@@ -901,6 +937,12 @@ Function convertTo-PSHelpExample {
     } else {
         write-verbose "ScriptBlock:$($ScriptBlock)" ;
     } ;
+
+    # we need split lines to prefix with PS> (and no blank lines)
+    if(($ScriptBlock |  measure).count -eq 1){
+        [array]$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ;
+    } ; 
+
     # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
     # rgx replace to prefix all special chars, to make them literals, before doing any text -replace (graveaccent escape ea)
     #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
@@ -919,40 +961,48 @@ Function convertTo-PSHelpExample {
         } ; 
     } ;
     
-    if($scriptblock -isnot  [array]){
+    # ensure we have an array of separate lines to prefix - no empties
+    if($scriptblock -isnot  [array] -OR (($ScriptBlock |  measure).count -eq 1)){
         write-verbose "(`$ScriptBlock non-Array, splitting on NewLines)" ; 
-        # split into lines - looks like a wrapped block, but it's one line with crlfs - need each to loop and append prefixes
-        #$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine)
-        #$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ; 
-        $ScriptBlock = $ScriptBlock.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;
+        # split into lines - looks like a wrapped block, but it's one line with crlfs - need each to loop and append prefixes, so split it out
+        #[array]$ScriptBlock = $ScriptBlock.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;
+        # above results in PS> [blank], drop the empties
+        [array]$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ;
     } ; 
-
     
+    # coercing every assign into array, and typing the aggreg
     if($nopad){
-        [array]$CBH = "$($sCBHKeyword)"
+        [array]$CBH = @("$($sCBHKeyword)")
     } else {
-        [array]$CBH = "$($sCBHKeyword)`n"
+        [array]$CBH = @("$($sCBHKeyword)`n")
     } ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {
-        if($nopad){
-            $CBH += "$($sCBHPrompt) $($_)" ;
-        } else {
-            #$CBH += "$($sCBHPrompt) $($_)`n" ;
-            # above was creating examples with EOL [LF] vs [CR][LF], use both (Pester no-likey)
-            $CBH += "$($sCBHPrompt) $($_)`r`n" ;
+    $ScriptBlock = @(
+        $ScriptBlock | Foreach-Object {
+            if($nopad){
+                @($CBH += "$($sCBHPrompt) $($_)") 
+            } else {
+                #$CBH += "$($sCBHPrompt) $($_)`n" ;
+                # above was creating examples with EOL [LF] vs [CR][LF], use both (Pester no-likey)
+                @($CBH += "$($sCBHPrompt) $($_)`r`n" )
+            }  
         } ; 
-    } ; 
-    $CBH += "SAMPLEOUTPUT" ; 
-    $CBH += "DESCRIPTION" ; 
-    
+    ) ; 
+    $CBH += @("SAMPLEOUTPUT") ; 
+    $CBH += @("DESCRIPTION") ; 
+
     # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
     #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
-    # wrapper function
-    $CBH=convertFrom-EscapedPSText -ScriptBlock $CBH -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
+    # wrapper function: 
+    $CBH=convertFrom-EscapedPSText -ScriptBlock $CBH -verbose:$($VerbosePreference -eq "Continue") ;  ;  
     if($fromCB){
         write-host "(sending results back to clipboard)" ;
         #$CBH | out-clipboard ; 
-        set-clipboard -value $CBH ;
+        # 4/5/2023: suddenly set-clipboard -value breaks, param now shows as -Text [facepalm]
+        <# -Files <FileSystemInfo[]>,-Html <String>,-Image <Image>,-Rtf <String>,-Text <String> #>
+        # try default positional # nope, param error
+        #set-clipboard $CBH ;
+        # coerce system.array to string and use -text
+        set-clipboard -text ($cbh | out-string) ; 
     } else { ; 
         # or to pipeline
         write-verbose "(sending results to pipeline)" ;
@@ -980,6 +1030,7 @@ Function convertTo-QuotedList {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text
     REVISIONS
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 1:16 PM 11/22/2021 added presplit to lines; upgraded to adv function; ren'd quote-list -> convertTo-QuotedList ; made actually functional (wasn't, was a half-finished copy of quote-text)
     * 8:27 PM 5/23/2014
     .DESCRIPTION
@@ -998,7 +1049,7 @@ Function convertTo-QuotedList {
         $List = $List.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;  
     } ; 
     $List |foreach-object {
-         "`"$($PSItem)`""  ; 
+         "`"$($_)`""  ; 
     } ; 
 }
 
@@ -1102,6 +1153,40 @@ function ConvertTo-SNAKE_CASE {
 }
 
 #*------^ ConvertTo-SNAKE_CASE.ps1 ^------
+
+
+#*------v convertto-StringCommaQuote.ps1 v------
+function convertto-StringCommaQuote{
+    <#
+    .SYNOPSIS
+    convertto-StringCommaQuote - Converts an array of strings into a comma-quoted delimited string
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     :	http://www.toddomation.com
+    Twitter     :	@tostka / http://twitter.com/tostka
+    CreatedDate : 2022-11-18
+    FileName    : convertto-StringCommaQuote
+    License     : MIT License
+    Copyright   : (c) 2022 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text,csv
+    REVISIONS
+    * 5:27 PM 11/18/2022 init
+    .DESCRIPTION
+    convertto-StringCommaQuote - Converts an array of strings into a comma-quoted delimited string
+    .PARAMETER String
+    Array of strings to be comma-quote delimited
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()] PARAM([Parameter(ValueFromPipeline=$true)][string[]]$String) ;
+    BEGIN{$outs = @()} 
+    PROCESS{[array]$outs += $String | foreach-object{$_} ; } 
+    END {'"' + $(($outs) -join '","') + '"' | out-string } ; 
+}
+
+#*------^ convertto-StringCommaQuote.ps1 ^------
 
 
 #*------v ConvertTo-StringQuoted.ps1 v------
@@ -1346,7 +1431,9 @@ Function convertTo-WordsReverse {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
-    10:34 AM 11/19/2021 init
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
+    * 5:01 PM 4/6/2022 add name reverse example
+    * 10:34 AM 11/19/2021 init
     .DESCRIPTION
     convertTo-WordsReverse - Reverse the order of words in a sentance/phrase. 
     Included silly period-to-line-end code, to avoid parsing periods into mid-phrase, where in original text.    
@@ -1355,27 +1442,41 @@ Function convertTo-WordsReverse {
     .PARAMETER  lines
     Text to be reversed in word-order[-lines 'THESE are the times that try men's souls.']
     .EXAMPLE
-    "Those who would give up essential Liberty, to purchase a little temporary Safety, deserve neither Liberty nor Safety." | convertTo-WordsReverse ;
+    PS> "Those who would give up essential Liberty, to purchase a little temporary Safety, deserve neither Liberty nor Safety." | convertTo-WordsReverse ;
+    Safety nor Liberty neither deserve Safety, temporary little a purchase to Liberty, essential up give would who Those.
     Simple example reversing a phrase
     .EXAMPLE
-    $h=@"
+    PS> $h=@"
 Caesar had his Brutus, Charles the First his Cromwell; and George the Third
 - ['Treason!' cried the Speaker] -
 may profit by their example. 
 If this be treason, make the most of it. 
 ― Patrick Henry
 "@ ; 
-    convertTo-WordsReverse -lines $h -textonly -verbose; 
+    PS> convertTo-WordsReverse -lines $h -textonly -verbose; 
+        Third the George and Cromwell his First the Charles Brutus his had Caesar
+        Speaker the cried Treason
+        example their by profit may
+        it of most the make treason be this If
+        Henry Patrick
     Processing herestring block with TextOnly & verbose options. 
     .EXAMPLE
-    $h1=@"
+    PS> $h1=@"
 Some say the world will end in fire,
 Some say in ice.
 From what I've tasted of desire
 I hold with those who favor fire.
 "@ ; 
-    $h1 | convertTo-WordsReverse  ; 
+    PS> $h1 | convertTo-WordsReverse  ; 
+        fire, in end will world the say Some
+        ice in say Some.
+        desire of tasted I've what From.
+        fire favor who those with hold I.    
     Pipeline processing of herestring block 
+    .EXAMPLE
+    PS> ('Atticus Ross' | convertTo-WordsReverse) -replace ' ',', ' ;
+        Ross, Atticus 
+    Demo turning an 'FName Lname' string into 'Lname, Fname'
     .LINK
     https://github.com/tostka/verb-Text
     #>
@@ -1406,17 +1507,17 @@ I hold with those who favor fire.
     $lines | foreach-object {
         if($TextOnly){
             write-verbose "(-TextOnly, removing all but:$($rgxNonText))"
-            $l = $psitem -replace $rgxNonText,'' ;
+            $l = $_ -replace $rgxNonText,'' ;
         } else {
-            $l = $psitem ; 
+            $l = $_ ; 
         } ; 
         [boolean]$hasPeriod = $false ; 
-        write-verbose $PSItem ; 
+        write-verbose $_ ; 
         if($l -match '\.$'){
             $hashPeriod = $true ;
             $l = [regex]::match($l,'(.*)\.').captures[0].groups[1].value ;
         } else { 
-            #$l = $PsItem 
+            #$l = $_ 
         } ; 
         $array = $l -Split '\s' 
         #$array[($l.Count-1)..0] -join ' '
@@ -1681,6 +1782,7 @@ function Remove-StringDiacritic {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text,String,ForeignLanguage,Language
     REVISIONS
+    * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 1:50 PM 11/22/2021 added param pipeline support & hepmessage on params
     * Mar 22, 2019, init
     .DESCRIPTION
@@ -1691,7 +1793,7 @@ function Remove-StringDiacritic {
     Specifies the normalization form to use ;
     https://msdn.microsoft.com/en-us/library/system.text.normalizationform(v=vs.110).aspx
     .EXAMPLE
-    PS C:\> Remove-StringDiacritic "L'été de Raphaël" ;
+    PS C:\> Remove-StringDiacritic "L'�t� de Rapha�l" ;
     L'ete de Raphael ;
     .LINK
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
@@ -1713,8 +1815,8 @@ function Remove-StringDiacritic {
             # Convert the String to CharArray
             $normalized.ToCharArray() |
             ForEach-Object -Process {
-                if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($psitem) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
-                    [void]$NewString.Append($psitem) ;
+                if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($_) -ne [Globalization.UnicodeCategory]::NonSpacingMark) {
+                    [void]$NewString.Append($_) ;
                 } ;
             } ;
             #Combine the new string chars
@@ -2153,7 +2255,7 @@ function test-IsUri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
 
 
 
@@ -2161,8 +2263,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUkon79LQIEa+u3RC20fUarJ1/
-# VrCgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUjxgrHcApTRZm/iFKc5o0bJpi
+# +UOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2177,9 +2279,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRCmqQ7
-# obmiqsNADjKbf0PovkemgDANBgkqhkiG9w0BAQEFAASBgF4jlT4OH5mnTevS0wyr
-# DUKRAAunyqppA9DqZYgqWNyAIfEnJBArHV4xLsu1FwGeurt0kchulCOr6b8gfrPi
-# G+/QVukHPK68mNEMHMDuJ6mRPjXQHgWYwRX0c3hhmJG3x/FJAsU9ftlcZz7IVU5y
-# liXcXHf9lmKSwF+JTMk6tKek
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTyddEn
+# tvmfkwo9xWiAUZaFSsb2ZDANBgkqhkiG9w0BAQEFAASBgKai87y9uxVzSvbJVvWk
+# E1ZwM9cJx1EasIP0hdLCmAduMd5KiZxD92JZgp1iLYGS3FmlVj1q0q5vpd2aZwfj
+# JCm9Hbyhmd/Mhumv1wR2DOOtieqpqBMkeUbKd8TGF/DZh3zEPfOuK3vnpUGHTGnS
+# VImAHvbI8SoZuZPybwNBujsB
 # SIG # End signature block
