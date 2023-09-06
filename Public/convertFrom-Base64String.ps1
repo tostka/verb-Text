@@ -17,6 +17,7 @@ function convertFrom-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 11:02 AM 9/5/2023 updated catch: wasn't echo'ing anything, just throw everything out. Considered putting in PROC loop, but w mix of string & path intputs, that'd be too hard to arbitrate between processing an inbound loop.
     * 3:58 PM 4/20/2022 Work in progress, was adding file 'sourcefile/targetfile' support, untested, I believe I had issues with the conversion, b64 wouldn't convert cleanly back to original (as part of the encoding for the invoke-soundcue bundled ping updates).
     * 10:38 AM 9/16/2021 removed spurious DefaultParameterSet matl and file/path test material (from convertto-b64...), added pipeline example to CBH, fixed CBH params (had convertfrom params spec'd); added email address conversion example
     * 8:26 AM 12/13/2019 convertFrom-Base64String:init
@@ -82,8 +83,8 @@ function convertFrom-Base64String {
         }; 
     } CATCH {
         $ErrTrapd=$Error[0] ;
-        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
         else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
     } ; 
 } ; 
