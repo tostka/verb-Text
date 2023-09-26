@@ -1,11 +1,11 @@
-﻿# verb-Text.psm1
+﻿# verb-text.psm1
 
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 5.1.4.0
+  Version     : 5.2.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -232,6 +232,7 @@ function convertFrom-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 11:02 AM 9/5/2023 updated catch: wasn't echo'ing anything, just throw everything out. Considered putting in PROC loop, but w mix of string & path intputs, that'd be too hard to arbitrate between processing an inbound loop.
     * 3:58 PM 4/20/2022 Work in progress, was adding file 'sourcefile/targetfile' support, untested, I believe I had issues with the conversion, b64 wouldn't convert cleanly back to original (as part of the encoding for the invoke-soundcue bundled ping updates).
     * 10:38 AM 9/16/2021 removed spurious DefaultParameterSet matl and file/path test material (from convertto-b64...), added pipeline example to CBH, fixed CBH params (had convertfrom params spec'd); added email address conversion example
     * 8:26 AM 12/13/2019 convertFrom-Base64String:init
@@ -297,8 +298,8 @@ function convertFrom-Base64String {
         }; 
     } CATCH {
         $ErrTrapd=$Error[0] ;
-        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
         else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
     } ; 
 }
@@ -571,6 +572,81 @@ function convert-Rot47 {
 #*------^ convert-Rot47.ps1 ^------
 
 
+#*------v convertto-AcronymFromCaps.ps1 v------
+Function convertto-AcronymFromCaps {
+    <#
+    .SYNOPSIS
+    convertto-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
+    .NOTES
+    Author: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 9:47 AM 8/31/2023 bad verb: ren create-AcronymFromCaps -> convertto-AcronymFromCaps, alias orig name; CBH, updated examples to have output demo
+    * 9:34 AM 3/12/2021 added -doEXOSubstitution to auto-tag 'exo' cmds in generated acronym (part of autoaliasing hybrid cmds across both onprem & EXO); added -verbose support
+    12:14 PM 2/16/2016 - working
+    8:58 AM 2/16/2016 - initial version
+    .DESCRIPTION
+    convertto-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
+    Note:-doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' prefix _for it's own_ new commandlets, necessitating users to retroactrively shift prior use of -commandprefix 'exo', in existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
+    .PARAMETER  String
+    String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'
+    .PARAMETER doEXOSubstitution
+    switch to add an 'x' in output position _2_, when `$String, has 'exo' or 'xo' as a substring (used for tagging hybrid Exchange o365 cmdlets with a commandprefix)[-doEXOSubstitution]
+    .INPUTS
+    None
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    PS> convertto-AcronymFromCaps "get-AdGroupMembersRecurseManual" ;
+    
+        AGMRM
+        
+    Create a Capital-letter Acroynm for the specified string
+    .EXAMPLE
+    PS> $fn=".\$(convertto-AcronymFromCaps $scriptNameNoExt)-$(get-date -uformat '%Y%m%d-%H%M').csv" ;
+    Create a filename based off of an Acronym from the capital letters in the ScriptNameNoExt.
+    .EXAMPLE
+    PS> $tCmdlet = 'Get-xoMailboxFolderStatistics' ; 
+    PS> write-verbose 'get-command resolves to standardized name capitalization (regardless of input string case)'
+    PS> $tCmdlet = (gcm $tCmdlet).Name ; 
+    PS> set-alias -name "$(convertto-AcronymFromCaps -string $tCmdlet -doEXOSubstitution)" -value $tCmdlet ; 
+    
+        GxMFS
+        
+    Create an alias 'GxMFS' for the Exchange Online Get-xoMailboxFolderStatistics cmdlet (which in this case reflects an 'xo' commandprefix'd) . Example also pre-resolves the specified cmdlet name, to the default cmdlet Name capitalization scheme (for consistency; ensure it always produces the same acronym for a given cmdlet)
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()]
+    [Alias('create-AcronymFromCaps')]
+    Param(
+        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'")][ValidateNotNullOrEmpty()]
+        [string]$String,
+        [Parameter(HelpMessage="switch to add an 'x' in output position _2_, when `$String, has 'exo' or 'xo' as a substring (used for tagging hybrid Exchange o365 cmdlets with a commandprefix)[-doEXOSubstitution]")]
+        [switch] $doEXOSubstitution
+    ) ;
+    $Verbose = ($VerbosePreference -eq 'Continue') ; 
+    if($doEXOSubstitution){
+        if($String -cmatch '((E)*)XO'){
+            write-verbose "-doEXOSubstitution: Ucase 'EXO|XO' detected in `$String: .toLower()'ing the matched string, so that it only appears in output acronym as single lcase 'x', rather than full all caps '(E)XO'" 
+            $String = $tcmdlet.replace($matches[0],$matches[0].tolower()) ; 
+        } ; 
+    } ;
+    $AcroCap = $String -split "" -cmatch '([A-Z])' -join ""  ;
+    if($doEXOSubstitution){
+        if($String -match '((e)*)xo'){
+            write-verbose "-doEXOSubstitution specified, and 'exo|xo' substring detected: adding 'x' into 2nd position of output" ; 
+            $AcroCap = "$($AcroCap.substring(0,1))x$($AcroCap.substring(1,$AcroCap.length-1))" ; 
+        } ; 
+    } ; 
+    write-verbose "output:$($AcroCap)" ; 
+    write-output $AcroCap ;
+}
+
+#*------^ convertto-AcronymFromCaps.ps1 ^------
+
+
 #*------v convertTo-Base64String.ps1 v------
 function convertTo-Base64String {
     <#
@@ -590,6 +666,7 @@ function convertTo-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 11:02 AM 9/5/2023 updated catch: wasn't echo'ing anything, just throw everything out.
     * 3:58 PM 4/20/2022 Work in progress, was adding file 'sourcefile/targetfile' support, untested, I believe I had issues with the conversion, b64 wouldn't convert cleanly back to original (as part of the encoding for the invoke-soundcue bundled ping updates).
     * 10:27 AM 9/16/2021 updated CBH, set -string as position 0, flipped pipeline to string from path, removed typo $file test, pre-resolve-path any string, and if it resolves to a file, load the file for conversion. Shift path validation into the body. 
     * 8:26 AM 12/13/2019 convertTo-Base64String:init
@@ -666,8 +743,8 @@ function convertTo-Base64String {
         }; 
     } CATCH {
         $ErrTrapd=$Error[0] ;
-        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
         else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
     } ; 
 }
@@ -679,7 +756,7 @@ function convertTo-Base64String {
 function convertto-Base64StringCommaQuoted{
     <#
     .SYNOPSIS
-    convertto-Base64StringCommaQuoted - Converts an array of strings Base64 string, then into a comma-quoted delimited string, and outputs the result to the clipboard
+    convertto-Base64StringCommaQuoted - Converts an array of Base64 strings, then into a comma-quoted delimited string, and outputs the result to the clipboard
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -692,19 +769,50 @@ function convertto-Base64StringCommaQuoted{
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,csv
     REVISIONS
+    * 10:29 AM 9/26/2023 fix trailing ] typo on #33; added -outObject, and set verbose to dump the ouptut to pipeline (verifying it works if cb access issues); add: 'string' as param alias for str
+    * 11:02 AM 9/5/2023 added proc-loop try-catch: wasn't echo'ing anything, just throw everything out.
     * 5:27 PM 11/18/2022 init
     .DESCRIPTION
     convertto-Base64StringCommaQuoted - Converts an array of strings Base64 string, then into a comma-quoted delimited string, and outputs the result to the clipboard
     .PARAMETER String
     Array of strings to be converted
+    .PARAMETER outObject
+    Switch that returns results to pipeline
     .LINK
     https://github.com/tostka/verb-text
     #>
     [CmdletBinding()] 
-    PARAM([Parameter(ValueFromPipeline=$true)][string[]]$str) ;
+    PARAM(
+		[Parameter(ValueFromPipeline=$true, HelpMessage='Array of strings to be converted')]
+			[Alias('String')]
+			[string[]]$str,
+		[Parameter(HelpMessage='Switch that returns results to pipeline')]
+			[switch]$outObject
+	) ;
     BEGIN{$outs = @()}
-    PROCESS{[array]$outs += $str | %{[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($_))} ; }
-    END {'"' + $(($outs) -join '","') + '"' | out-string | set-clipboard } ; 
+    PROCESS{
+		[array]$outs += $str | foreach-object{
+			TRY{
+				[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($_)) ; 
+			} CATCH {
+				$ErrTrapd=$Error[0] ;
+				$smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+				if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+				else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+				CONTINUE
+			} ; 
+        } ; 
+    } ; 
+    END {
+		$ret = '"' + $(($outs) -join '","') + '"' | out-string  ; 
+		if($ret){
+			$ret | set-clipboard 
+			if($outObject -OR ($VerbosePreference -eq "Continue")){$ret | write-output} 
+		} else {
+			write-verbose "No output" ; 
+			if($outObject -OR ($VerbosePreference -eq "Continue")){$false | write-output} 
+		} ;  ; 
+	} ; 
 }
 
 #*------^ convertto-Base64StringCommaQuoted.ps1 ^------
@@ -1639,72 +1747,6 @@ Function convertTo-WrappedText {
 #*------^ convertTo-WrappedText.ps1 ^------
 
 
-#*------v create-AcronymFromCaps.ps1 v------
-Function create-AcronymFromCaps {
-    <#
-    .SYNOPSIS
-    create-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
-    .NOTES
-    Author: Todd Kadrie
-    Website:	http://tinstoys.blogspot.com
-    Twitter:	http://twitter.com/tostka
-    REVISIONS   :
-    * 9:34 AM 3/12/2021 added -doEXOSubstitution to auto-tag 'exo' cmds in generated acronym (part of autoaliasing hybrid cmds across both onprem & EXO); added -verbose support
-    12:14 PM 2/16/2016 - working
-    8:58 AM 2/16/2016 - initial version
-    .DESCRIPTION
-    create-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
-    Note:-doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' prefix _for it's own_ new commandlets, necessitating users to retroactrively shift prior use of -commandprefix 'exo', in existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
-    .PARAMETER  String
-    String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'
-    .PARAMETER doEXOSubstitution
-    switch to add an 'x' in output position _2_, when `$String, has 'exo' or 'xo' as a substring (used for tagging hybrid Exchange o365 cmdlets with a commandprefix)[-doEXOSubstitution]
-    .INPUTS
-    None
-    .OUTPUTS
-    System.String
-    .EXAMPLE
-    create-AcronymFromCaps "get-AdGroupMembersRecurseManual" ;
-    Create an Capital-letter Acroynm for the specified string
-    .EXAMPLE
-    $fn=".\$(create-AcronymFromCaps $scriptNameNoExt)-$(get-date -uformat '%Y%m%d-%H%M').csv" ;
-    Create a filename based off of an Acronym from the capital letters in the ScriptNameNoExt.
-    .EXAMPLE
-    $tCmdlet = 'Get-exoMailboxFolderStatistics' ; 
-    $tCmdlet = (gcm $tCmdlet).Name ; 
-    set-alias -name "$(create-AcronymFromCaps -string $tCmdlet -doEXOSubstitution)" -value $tCmdlet ; 
-    Create an alias 'GxMFS' for the Exchange Online Get-exoMailboxFolderStatistics cmdlet (which in this case reflects an 'exo' commandprefix'd) . Example also pre-resolves the specified cmdlet name, to the default cmdlet Name capitalization scheme (for consistency)
-    .LINK
-    https://github.com/tostka/verb-text
-    #>
-    [CmdletBinding()]
-    Param(
-        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'")][ValidateNotNullOrEmpty()]
-        [string]$String,
-        [Parameter(HelpMessage="switch to add an 'x' in output position _2_, when `$String, has 'exo' or 'xo' as a substring (used for tagging hybrid Exchange o365 cmdlets with a commandprefix)[-doEXOSubstitution]")]
-        [switch] $doEXOSubstitution
-    ) ;
-    $Verbose = ($VerbosePreference -eq 'Continue') ; 
-    if($doEXOSubstitution){
-        if($String -cmatch '((E)*)XO'){
-            write-verbose "-doEXOSubstitution: Ucase 'EXO|XO' detected in `$String: .toLower()'ing the matched string, so that it only appears in output acronym as single lcase 'x', rather than full all caps '(E)XO'" 
-            $String = $tcmdlet.replace($matches[0],$matches[0].tolower()) ; 
-        } ; 
-    } ;
-    $AcroCap = $String -split "" -cmatch '([A-Z])' -join ""  ;
-    if($doEXOSubstitution){
-        if($String -match '((e)*)xo'){
-            write-verbose "-doEXOSubstitution specified, and 'exo' substring detected: adding 'x' into 2nd position of output" ; 
-            $AcroCap = "$($AcroCap.substring(0,1))x$($AcroCap.substring(1,$AcroCap.length-1))" ; 
-        } ; 
-    } ; 
-    write-verbose "output:$($AcroCap)" ; 
-    write-output $AcroCap ;
-}
-
-#*------^ create-AcronymFromCaps.ps1 ^------
-
-
 #*------v get-StringHash.ps1 v------
 function get-StringHash {
         <#
@@ -2460,7 +2502,7 @@ function test-IsUri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
 
 
 
