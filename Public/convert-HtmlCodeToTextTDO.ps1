@@ -1,29 +1,30 @@
-﻿#*------v Function convertFrom-Html v------
-function convertFrom-Html {
+﻿#*------v Function convert-HtmlCodeToTextTDO v------
+function convert-HtmlCodeToTextTDO {
     <#
     .SYNOPSIS
-    convertFrom-Html - Convert specified text html to plain text (replace html tags & entities) and return to pipeline
+    convert-HtmlCodeToTextTDO - Convert specified text html code to plain text (replace html tags & entities, configure whitespace) and return to pipeline
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
     CreatedDate : 2021-05-14
-    FileName    : convertFrom-Html.ps1
+    FileName    : convert-HtmlCodeToTextTDO.ps1
     License     : (non-asserted)
     Copyright   : 
     Github      : https://github.com/tostka
     AddedCredit : Winston Fassett
     AddedWebsite:	http://winstonfassett.com/blog/author/Winston/
     REVISIONS
+    * 8:34 AM 11/8/2023 name-clash with importExcel mod leverage of ConvertFrom-Html(): ren convertFrom-Html -> convert-HtmlCodeToTextTDO (alias:     convertFrom-HtmlTDO ; don't alias to old name, do alias to tagged variant: This doesn't convert web pages, it replaces common html entities, strips tags & configures raw text whitespace
     * 3:11 PM 5/14/2021 convertFrom-Html:init, added $file spec
     .DESCRIPTION
-    convertFrom-Html - Convert specified text html to plain text (replace html tags & entities) and return to pipeline
+    convert-HtmlCodeToTextTDO - Convert specified text html to plain text (replace html tags & entities) and return to pipeline
     Minimal port of Winston Fassett's html-ToText()
     .PARAMETER  string
     File to be Base64 encoded (image, text, whatever)[-string path-to-file]
     .EXAMPLE
-    convertFrom-Html.ps1 -string 'xxxxx' ; 
+    convert-HtmlCodeToTextTDO.ps1 -string 'xxxxx' ; 
     .LINK
     http://winstonfassett.com/blog/2010/09/21/html-to-text-conversion-in-powershell/
     .LINK
@@ -51,6 +52,7 @@ function convertFrom-Html {
 #-=-=-=-=-=-=-=-=
 #>
     [CmdletBinding(DefaultParameterSetName='fromstring')]
+    [Alias('convertFrom-HtmlTDO')]
     PARAM(
         [Parameter(ParameterSetName='fromstring',Position=0,Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted from html to plain text[-string '<b>text</b>']")]
         [System.String]$string,
@@ -108,4 +110,4 @@ function convertFrom-Html {
 
     $string | write-output ;     
 } ; 
-#*------^ END Function convertFrom-Html ^------
+#*------^ END Function convert-HtmlCodeToTextTDO ^------
