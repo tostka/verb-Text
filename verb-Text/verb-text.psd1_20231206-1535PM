@@ -12,7 +12,7 @@
 RootModule = 'verb-Text.psm1'
 
 # Version number of this module.
-ModuleVersion = '5.3.3'
+ModuleVersion = '5.3.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Generic text-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('compare-CodeRevision','convert-CaesarCipher','_encode','_decode','convertFrom-Base64String','convert-HtmlCodeToTextTDO','Convert-invertCase','convert-Rot13','convert-Rot47','convertto-AcronymFromCaps','convertTo-Base64String','convertto-Base64StringCommaQuoted','ConvertTo-CamelCase','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-PSHelpExample','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertto-StringCommaQuote','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedText','get-StringHash','new-LoremString','Remove-StringDiacritic','Remove-StringLatinCharacters','Test-IsGuid','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','test-IsUri')
+FunctionsToExport = @('compare-CodeRevision','convert-CaesarCipher','_encode','_decode','convertFrom-Base64String','convertFrom-Html','Convert-invertCase','convert-Rot13','convert-Rot47','convertto-AcronymFromCaps','convertTo-Base64String','convertto-Base64StringCommaQuoted','ConvertTo-CamelCase','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-PSHelpExample','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertto-StringCommaQuote','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedText','get-StringHash','new-LoremString','Remove-StringDiacritic','Remove-StringLatinCharacters','Test-IsGuid','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','test-IsUri')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -87,7 +87,7 @@ AliasesToExport = '*'
 # ModuleList = @()
 
 # List of all files packaged with this module
-FileList = @('Quick-Start-Installation-and-Example.md','CHANGELOG.md','LICENSE.txt','README.md')
+# FileList = @()
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUFc0Ma4JM8wkdLsFchLV3USHQ
-# ek+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUdsIsPNpdwYWbw+Jl/p3M/PIn
+# 5KOgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTXed+d
-# kxrCspl5OR5ivtoS9wd0vDANBgkqhkiG9w0BAQEFAASBgJ2aRdKGp/vYGPAmoRvF
-# i/kL1vWJW9C/+N2vP9ErlZxYcRqmrcsITx8Mma8Zr+/m/8fkoZR6z7rSXi1TPXQ7
-# xlE44S4ZwM0iXmqd/nNQLBU/0+jBYqsKMAoC8Ny4Fwh9AAK9WjmIsK835OjEHvib
-# mXJU4E8srVTQvRAkY9Swsq00
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRIUb31
+# ydf9U4j8krlcEnfynjjCVTANBgkqhkiG9w0BAQEFAASBgIHX8D7LSm3t3PBKiDHL
+# Ja4m/LqsyHs1n2sefKRflNp/GKvhzK/dXHguQTcVOCSPxMYBIpTTOltfs+5kD+Z4
+# 9qvI/eN+7DGOaLwV3y2rMQen2BCrpeLFL1m6B1/4s0JCuT39hHmhw7Y7mfYooLs1
+# e9utoNdmpf01cLxIntn5hQNj
 # SIG # End signature block

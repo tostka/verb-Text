@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 5.1.2.0
+  Version     : 5.2.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -232,6 +232,7 @@ function convertFrom-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 11:02 AM 9/5/2023 updated catch: wasn't echo'ing anything, just throw everything out. Considered putting in PROC loop, but w mix of string & path intputs, that'd be too hard to arbitrate between processing an inbound loop.
     * 3:58 PM 4/20/2022 Work in progress, was adding file 'sourcefile/targetfile' support, untested, I believe I had issues with the conversion, b64 wouldn't convert cleanly back to original (as part of the encoding for the invoke-soundcue bundled ping updates).
     * 10:38 AM 9/16/2021 removed spurious DefaultParameterSet matl and file/path test material (from convertto-b64...), added pipeline example to CBH, fixed CBH params (had convertfrom params spec'd); added email address conversion example
     * 8:26 AM 12/13/2019 convertFrom-Base64String:init
@@ -297,8 +298,8 @@ function convertFrom-Base64String {
         }; 
     } CATCH {
         $ErrTrapd=$Error[0] ;
-        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
         else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
     } ; 
 }
@@ -571,6 +572,81 @@ function convert-Rot47 {
 #*------^ convert-Rot47.ps1 ^------
 
 
+#*------v convertto-AcronymFromCaps.ps1 v------
+Function convertto-AcronymFromCaps {
+    <#
+    .SYNOPSIS
+    convertto-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
+    .NOTES
+    Author: Todd Kadrie
+    Website:	http://tinstoys.blogspot.com
+    Twitter:	http://twitter.com/tostka
+    REVISIONS   :
+    * 9:47 AM 8/31/2023 bad verb: ren create-AcronymFromCaps -> convertto-AcronymFromCaps, alias orig name; CBH, updated examples to have output demo
+    * 9:34 AM 3/12/2021 added -doEXOSubstitution to auto-tag 'exo' cmds in generated acronym (part of autoaliasing hybrid cmds across both onprem & EXO); added -verbose support
+    12:14 PM 2/16/2016 - working
+    8:58 AM 2/16/2016 - initial version
+    .DESCRIPTION
+    convertto-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
+    Note:-doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' prefix _for it's own_ new commandlets, necessitating users to retroactrively shift prior use of -commandprefix 'exo', in existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
+    .PARAMETER  String
+    String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'
+    .PARAMETER doEXOSubstitution
+    switch to add an 'x' in output position _2_, when `$String, has 'exo' or 'xo' as a substring (used for tagging hybrid Exchange o365 cmdlets with a commandprefix)[-doEXOSubstitution]
+    .INPUTS
+    None
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    PS> convertto-AcronymFromCaps "get-AdGroupMembersRecurseManual" ;
+    
+        AGMRM
+        
+    Create a Capital-letter Acroynm for the specified string
+    .EXAMPLE
+    PS> $fn=".\$(convertto-AcronymFromCaps $scriptNameNoExt)-$(get-date -uformat '%Y%m%d-%H%M').csv" ;
+    Create a filename based off of an Acronym from the capital letters in the ScriptNameNoExt.
+    .EXAMPLE
+    PS> $tCmdlet = 'Get-xoMailboxFolderStatistics' ; 
+    PS> write-verbose 'get-command resolves to standardized name capitalization (regardless of input string case)'
+    PS> $tCmdlet = (gcm $tCmdlet).Name ; 
+    PS> set-alias -name "$(convertto-AcronymFromCaps -string $tCmdlet -doEXOSubstitution)" -value $tCmdlet ; 
+    
+        GxMFS
+        
+    Create an alias 'GxMFS' for the Exchange Online Get-xoMailboxFolderStatistics cmdlet (which in this case reflects an 'xo' commandprefix'd) . Example also pre-resolves the specified cmdlet name, to the default cmdlet Name capitalization scheme (for consistency; ensure it always produces the same acronym for a given cmdlet)
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()]
+    [Alias('create-AcronymFromCaps')]
+    Param(
+        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'")][ValidateNotNullOrEmpty()]
+        [string]$String,
+        [Parameter(HelpMessage="switch to add an 'x' in output position _2_, when `$String, has 'exo' or 'xo' as a substring (used for tagging hybrid Exchange o365 cmdlets with a commandprefix)[-doEXOSubstitution]")]
+        [switch] $doEXOSubstitution
+    ) ;
+    $Verbose = ($VerbosePreference -eq 'Continue') ; 
+    if($doEXOSubstitution){
+        if($String -cmatch '((E)*)XO'){
+            write-verbose "-doEXOSubstitution: Ucase 'EXO|XO' detected in `$String: .toLower()'ing the matched string, so that it only appears in output acronym as single lcase 'x', rather than full all caps '(E)XO'" 
+            $String = $tcmdlet.replace($matches[0],$matches[0].tolower()) ; 
+        } ; 
+    } ;
+    $AcroCap = $String -split "" -cmatch '([A-Z])' -join ""  ;
+    if($doEXOSubstitution){
+        if($String -match '((e)*)xo'){
+            write-verbose "-doEXOSubstitution specified, and 'exo|xo' substring detected: adding 'x' into 2nd position of output" ; 
+            $AcroCap = "$($AcroCap.substring(0,1))x$($AcroCap.substring(1,$AcroCap.length-1))" ; 
+        } ; 
+    } ; 
+    write-verbose "output:$($AcroCap)" ; 
+    write-output $AcroCap ;
+}
+
+#*------^ convertto-AcronymFromCaps.ps1 ^------
+
+
 #*------v convertTo-Base64String.ps1 v------
 function convertTo-Base64String {
     <#
@@ -590,6 +666,7 @@ function convertTo-Base64String {
     AddedWebsite:	URL
     AddedTwitter:	URL
     REVISIONS
+    * 11:02 AM 9/5/2023 updated catch: wasn't echo'ing anything, just throw everything out.
     * 3:58 PM 4/20/2022 Work in progress, was adding file 'sourcefile/targetfile' support, untested, I believe I had issues with the conversion, b64 wouldn't convert cleanly back to original (as part of the encoding for the invoke-soundcue bundled ping updates).
     * 10:27 AM 9/16/2021 updated CBH, set -string as position 0, flipped pipeline to string from path, removed typo $file test, pre-resolve-path any string, and if it resolves to a file, load the file for conversion. Shift path validation into the body. 
     * 8:26 AM 12/13/2019 convertTo-Base64String:init
@@ -666,8 +743,8 @@ function convertTo-Base64String {
         }; 
     } CATCH {
         $ErrTrapd=$Error[0] ;
-        $smsg = "$('*'*5)`nFailed processing $($ErrTrapd.Exception.ItemName). `nError Message: $($ErrTrapd.Exception.Message)`nError Details: `n$(($ErrTrapd|out-string).trim())`n$('-'*5)" ;
-        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug 
+        $smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+        if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
         else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
     } ; 
 }
@@ -679,7 +756,7 @@ function convertTo-Base64String {
 function convertto-Base64StringCommaQuoted{
     <#
     .SYNOPSIS
-    convertto-Base64StringCommaQuoted - Converts an array of strings Base64 string, then into a comma-quoted delimited string, and outputs the result to the clipboard
+    convertto-Base64StringCommaQuoted - Converts an array of Base64 strings, then into a comma-quoted delimited string, and outputs the result to the clipboard
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -692,19 +769,50 @@ function convertto-Base64StringCommaQuoted{
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,csv
     REVISIONS
+    * 10:29 AM 9/26/2023 fix trailing ] typo on #33; added -outObject, and set verbose to dump the ouptut to pipeline (verifying it works if cb access issues); add: 'string' as param alias for str
+    * 11:02 AM 9/5/2023 added proc-loop try-catch: wasn't echo'ing anything, just throw everything out.
     * 5:27 PM 11/18/2022 init
     .DESCRIPTION
     convertto-Base64StringCommaQuoted - Converts an array of strings Base64 string, then into a comma-quoted delimited string, and outputs the result to the clipboard
     .PARAMETER String
     Array of strings to be converted
+    .PARAMETER outObject
+    Switch that returns results to pipeline
     .LINK
     https://github.com/tostka/verb-text
     #>
     [CmdletBinding()] 
-    PARAM([Parameter(ValueFromPipeline=$true)][string[]]$str) ;
+    PARAM(
+		[Parameter(ValueFromPipeline=$true, HelpMessage='Array of strings to be converted')]
+			[Alias('String')]
+			[string[]]$str,
+		[Parameter(HelpMessage='Switch that returns results to pipeline')]
+			[switch]$outObject
+	) ;
     BEGIN{$outs = @()}
-    PROCESS{[array]$outs += $str | %{[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($_))} ; }
-    END {'"' + $(($outs) -join '","') + '"' | out-string | set-clipboard } ; 
+    PROCESS{
+		[array]$outs += $str | foreach-object{
+			TRY{
+				[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($_)) ; 
+			} CATCH {
+				$ErrTrapd=$Error[0] ;
+				$smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+				if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+				else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+				CONTINUE
+			} ; 
+        } ; 
+    } ; 
+    END {
+		$ret = '"' + $(($outs) -join '","') + '"' | out-string  ; 
+		if($ret){
+			$ret | set-clipboard 
+			if($outObject -OR ($VerbosePreference -eq "Continue")){$ret | write-output} 
+		} else {
+			write-verbose "No output" ; 
+			if($outObject -OR ($VerbosePreference -eq "Continue")){$false | write-output} 
+		} ;  ; 
+	} ; 
 }
 
 #*------^ convertto-Base64StringCommaQuoted.ps1 ^------
@@ -884,6 +992,7 @@ Function convertTo-PSHelpExample {
     Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Text,Code,Development,CommentBasedHelp
     REVISIONS
+    * 1:36 PM 4/5/2023 suddenly set-clipboard -value breaks, param now shows as -Text: retooled splits, remove blank lines, coerce array and then coerse to text before writing to set-clipboard -text
     * 11:52 AM 9/8/2022 fix: #106 was writing codeblock with `n EOL, which resulted in [LF], instead of "proper" Win [CR][LF]. Pester complains, so updated to wright `n`r as EOL instead
     * 12:37 PM 6/1 7/2022 updated CBH, moved from vert-text -> verb-dev
     * 1:50 PM 3/1/2022 init
@@ -936,6 +1045,12 @@ Function convertTo-PSHelpExample {
     } else {
         write-verbose "ScriptBlock:$($ScriptBlock)" ;
     } ;
+
+    # we need split lines to prefix with PS> (and no blank lines)
+    if(($ScriptBlock |  measure).count -eq 1){
+        [array]$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ;
+    } ; 
+
     # issue specific to PS, -replace isn't literal, see's $ as variable etc control char
     # rgx replace to prefix all special chars, to make them literals, before doing any text -replace (graveaccent escape ea)
     #$ScriptBlock = $scriptblock -replace '([$*\~;(%?.:@/]+)','`$1' ;
@@ -954,40 +1069,48 @@ Function convertTo-PSHelpExample {
         } ; 
     } ;
     
-    if($scriptblock -isnot  [array]){
+    # ensure we have an array of separate lines to prefix - no empties
+    if($scriptblock -isnot  [array] -OR (($ScriptBlock |  measure).count -eq 1)){
         write-verbose "(`$ScriptBlock non-Array, splitting on NewLines)" ; 
-        # split into lines - looks like a wrapped block, but it's one line with crlfs - need each to loop and append prefixes
-        #$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine)
-        #$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ; 
-        $ScriptBlock = $ScriptBlock.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;
+        # split into lines - looks like a wrapped block, but it's one line with crlfs - need each to loop and append prefixes, so split it out
+        #[array]$ScriptBlock = $ScriptBlock.Split(@("`r`n", "`r", "`n"),[StringSplitOptions]::None) ;
+        # above results in PS> [blank], drop the empties
+        [array]$ScriptBlock = $ScriptBlock.Split([Environment]::NewLine, [StringSplitOptions]::RemoveEmptyEntries) ;
     } ; 
-
     
+    # coercing every assign into array, and typing the aggreg
     if($nopad){
-        [array]$CBH = "$($sCBHKeyword)"
+        [array]$CBH = @("$($sCBHKeyword)")
     } else {
-        [array]$CBH = "$($sCBHKeyword)`n"
+        [array]$CBH = @("$($sCBHKeyword)`n")
     } ; 
-    $ScriptBlock = $ScriptBlock | Foreach-Object {
-        if($nopad){
-            $CBH += "$($sCBHPrompt) $($_)" ;
-        } else {
-            #$CBH += "$($sCBHPrompt) $($_)`n" ;
-            # above was creating examples with EOL [LF] vs [CR][LF], use both (Pester no-likey)
-            $CBH += "$($sCBHPrompt) $($_)`r`n" ;
+    $ScriptBlock = @(
+        $ScriptBlock | Foreach-Object {
+            if($nopad){
+                @($CBH += "$($sCBHPrompt) $($_)") 
+            } else {
+                #$CBH += "$($sCBHPrompt) $($_)`n" ;
+                # above was creating examples with EOL [LF] vs [CR][LF], use both (Pester no-likey)
+                @($CBH += "$($sCBHPrompt) $($_)`r`n" )
+            }  
         } ; 
-    } ; 
-    $CBH += "SAMPLEOUTPUT" ; 
-    $CBH += "DESCRIPTION" ; 
-    
+    ) ; 
+    $CBH += @("SAMPLEOUTPUT") ; 
+    $CBH += @("DESCRIPTION") ; 
+
     # reverse escapes - have to use dbl-quotes around escaped backtick (dbld), or it doesn't become a literal
     #$ScriptBlock = $scriptblock -replace "``([$*\~;(%?.:@/]+)",'$1'; 
-    # wrapper function
-    $CBH=convertFrom-EscapedPSText -ScriptBlock $CBH -Verbose:($PSBoundParameters['Verbose'] -eq $true) ;  
+    # wrapper function: 
+    $CBH=convertFrom-EscapedPSText -ScriptBlock $CBH -verbose:$($VerbosePreference -eq "Continue") ;  ;  
     if($fromCB){
         write-host "(sending results back to clipboard)" ;
         #$CBH | out-clipboard ; 
-        set-clipboard -value $CBH ;
+        # 4/5/2023: suddenly set-clipboard -value breaks, param now shows as -Text [facepalm]
+        <# -Files <FileSystemInfo[]>,-Html <String>,-Image <Image>,-Rtf <String>,-Text <String> #>
+        # try default positional # nope, param error
+        #set-clipboard $CBH ;
+        # coerce system.array to string and use -text
+        set-clipboard -text ($cbh | out-string) ; 
     } else { ; 
         # or to pipeline
         write-verbose "(sending results to pipeline)" ;
@@ -1624,72 +1747,6 @@ Function convertTo-WrappedText {
 #*------^ convertTo-WrappedText.ps1 ^------
 
 
-#*------v create-AcronymFromCaps.ps1 v------
-Function create-AcronymFromCaps {
-    <#
-    .SYNOPSIS
-    create-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
-    .NOTES
-    Author: Todd Kadrie
-    Website:	http://tinstoys.blogspot.com
-    Twitter:	http://twitter.com/tostka
-    REVISIONS   :
-    * 9:34 AM 3/12/2021 added -doEXOSubstitution to auto-tag 'exo' cmds in generated acronym (part of autoaliasing hybrid cmds across both onprem & EXO); added -verbose support
-    12:14 PM 2/16/2016 - working
-    8:58 AM 2/16/2016 - initial version
-    .DESCRIPTION
-    create-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
-    Note:-doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' prefix _for it's own_ new commandlets, necessitating users to retroactrively shift prior use of -commandprefix 'exo', in existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
-    .PARAMETER  String
-    String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'
-    .PARAMETER doEXOSubstitution
-    switch to add an 'x' in output position _2_, when `$String, has 'exo' or 'xo' as a substring (used for tagging hybrid Exchange o365 cmdlets with a commandprefix)[-doEXOSubstitution]
-    .INPUTS
-    None
-    .OUTPUTS
-    System.String
-    .EXAMPLE
-    create-AcronymFromCaps "get-AdGroupMembersRecurseManual" ;
-    Create an Capital-letter Acroynm for the specified string
-    .EXAMPLE
-    $fn=".\$(create-AcronymFromCaps $scriptNameNoExt)-$(get-date -uformat '%Y%m%d-%H%M').csv" ;
-    Create a filename based off of an Acronym from the capital letters in the ScriptNameNoExt.
-    .EXAMPLE
-    $tCmdlet = 'Get-exoMailboxFolderStatistics' ; 
-    $tCmdlet = (gcm $tCmdlet).Name ; 
-    set-alias -name "$(create-AcronymFromCaps -string $tCmdlet -doEXOSubstitution)" -value $tCmdlet ; 
-    Create an alias 'GxMFS' for the Exchange Online Get-exoMailboxFolderStatistics cmdlet (which in this case reflects an 'exo' commandprefix'd) . Example also pre-resolves the specified cmdlet name, to the default cmdlet Name capitalization scheme (for consistency)
-    .LINK
-    https://github.com/tostka/verb-text
-    #>
-    [CmdletBinding()]
-    Param(
-        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = "String to be convered to a 'Capital Acrynym'[-String 'get-exoMailboxPermission]'")][ValidateNotNullOrEmpty()]
-        [string]$String,
-        [Parameter(HelpMessage="switch to add an 'x' in output position _2_, when `$String, has 'exo' or 'xo' as a substring (used for tagging hybrid Exchange o365 cmdlets with a commandprefix)[-doEXOSubstitution]")]
-        [switch] $doEXOSubstitution
-    ) ;
-    $Verbose = ($VerbosePreference -eq 'Continue') ; 
-    if($doEXOSubstitution){
-        if($String -cmatch '((E)*)XO'){
-            write-verbose "-doEXOSubstitution: Ucase 'EXO|XO' detected in `$String: .toLower()'ing the matched string, so that it only appears in output acronym as single lcase 'x', rather than full all caps '(E)XO'" 
-            $String = $tcmdlet.replace($matches[0],$matches[0].tolower()) ; 
-        } ; 
-    } ;
-    $AcroCap = $String -split "" -cmatch '([A-Z])' -join ""  ;
-    if($doEXOSubstitution){
-        if($String -match '((e)*)xo'){
-            write-verbose "-doEXOSubstitution specified, and 'exo' substring detected: adding 'x' into 2nd position of output" ; 
-            $AcroCap = "$($AcroCap.substring(0,1))x$($AcroCap.substring(1,$AcroCap.length-1))" ; 
-        } ; 
-    } ; 
-    write-verbose "output:$($AcroCap)" ; 
-    write-output $AcroCap ;
-}
-
-#*------^ create-AcronymFromCaps.ps1 ^------
-
-
 #*------v get-StringHash.ps1 v------
 function get-StringHash {
         <#
@@ -1748,6 +1805,211 @@ function get-StringHash {
     }
 
 #*------^ get-StringHash.ps1 ^------
+
+
+#*------v new-LoremString.ps1 v------
+function new-LoremString {
+    <#
+    .SYNOPSIS
+    new-LoremString - Creates a new Lorem Ipsum string with the specified characteristics. 
+    .NOTES
+    Version     : 1.0.0
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2023-
+    FileName    : new-LoremString.ps1
+    License     : (Non asserted)
+    Copyright   : (Non asserted)
+    Github      : https://github.com/tostka/verb-TEXT
+    Tags        : Powershell
+    AddedCredit : Adam Driscoll
+    AddedWebsite: https://www.powershellgallery.com/packages/LoremIpsum/1.0
+    AddedTwitter: @adamdriscoll
+    REVISIONS
+    * 1:25 PM 6/1/2023 fixed param $AltLexicon; wrapped in @() forced array.
+    * 12:47 PM 5/4/2023 Took AD's basic idea (stringbuilder assembly on looping 
+        array), and reworked the logic, primarily to require less inputs to get 
+        any output; defaulted some params, coereced others around inputs, expanded 
+        CBH, filled out param specs, added trailing explicit write-output; added 
+        verbose outputs; dbl CR between paras; Capped 1st char of ea Sentance; 
+        added -AltLexicon & -NoLorem params; range of extra CBH examples.
+    * 4/4/16 AD's posted PSG vers 1.0 
+    .DESCRIPTION
+    new-LoremString - Creates a new Lorem Ipsum string with the specified characteristics. 
+    
+    By default, without parameters, outputs a six-word random Lorem-based sentance.
+
+    The -AltLexicon parameter is prestocked with 100 words from Google's [100 Random Words - This Site Is Totally Random - Google Sites](https://sites.google.com/site/thissiteistotallyrandom/100-random-words)
+    and are used as the word source with the -NoLorem parameter. 
+    This parameter can also be specified on the command line with a custom string array of other words.
+
+    .PARAMETER minWords
+    Min number of words to be returned (defaults to 6)[-minwords 5]
+    .PARAMETER maxWords
+    Max number of words to be returned[-maxwords 7]
+    .PARAMETER minSentences
+    Min number of sentances to be returned(defaults to 1)[-minSentences 1]
+    .PARAMETER maxSentences
+    Max number of sentances to be returned[-maxSentences 3]
+    .PARAMETER numParagraphs
+    Number of paragraphs to be returned(defaults to 1)[-numParagraphs 2]
+    .PARAMETER NoLorem
+    Switch to use non-Lorem-based words (random 100 words)[-NoLorem]
+    .PARAMETER AltLexicon
+    String array of random words to use with -NoLorem switch (prepopulated with 100 random words from https://sites.google.com/site/thissiteistotallyrandom/100-random-words)[-AltLexicon 'word1','word2']
+    .INPUTS
+    None. Does not accepted piped input.
+    .OUTPUTS
+    System.String
+    .EXAMPLE
+    PS> new-loremstring -minWords 12 ;
+
+        Dolore erat elit diam nonummy dolore ipsum laoreet elit diam laoreet tincidunt. 
+
+    Output a single 12 word sentance. 
+    .EXAMPLE
+    PS> new-loremstring -minWords 15 -NoLorem ;
+
+        Prison juice moon frog computer flying hyperlink element cords mediocre moon zebra home cords final. 
+
+    Output a single 15 word sentance using the alt non-Lorem-text-based word list
+    
+    .EXAMPLE
+    PS> new-loremstring -minWords 4 -maxWords 8 -minSentences 3 -maxSentences 5 -numParagraphs 2 ; 
+
+        Elit consectetuer elit magna. Euismod ut consectetuer ut. Sit elit elit ut. 
+
+        Elit aliquam ut elit. Erat tincidunt nibh euismod. Elit nibh nibh nibh. 
+
+    Generate two random paragraphs of 3-5 sentances with 4-8 word each.
+    .EXAMPLE
+    PS> new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 | wrap-text -Characters 80 ; 
+
+        Ut erat magna dolor amet magna ipsum erat. Nonummy laoreet nonummy diam erat
+        lorem ipsum adipiscing. Ut nibh amet sed euismod magna diam nibh. Ut euismod
+        elit laoreet adipiscing dolor ipsum aliquam. Ipsum dolor elit euismod diam
+        adipiscing ut dolor. Laoreet laoreet diam aliquam euismod sit nibh laoreet.
+        Laoreet sit euismod tincidunt dolore dolor amet dolor. 
+
+        Diam ut laoreet dolor
+        sit nonummy tincidunt tincidunt. Nonummy sed laoreet ut aliquam magna diam nibh.
+        Sit aliquam magna ipsum euismod erat nibh aliquam. Dolore consectetuer tincidunt
+        dolore dolore elit ut elit. Sit elit euismod erat nibh dolore ipsum dolore. Ut
+        sit tincidunt ipsum nibh sed dolore ut. Lorem diam aliquam dolor ipsum ipsum sit
+        amet. 
+
+    Longer example piped through my verb-Text:wrap-text() to produce wrapped text output:
+    .EXAMPLE
+    PS> (new-loremstring -minWords 6).replace(' ','').substring(0,15) ; 
+        
+        Elitnonummyelit
+
+    Demo generation of a 16-character semi-random lorem-based string, with all spaces removed (for dummy values & inputs).
+    .EXAMPLE
+    PS> ((new-loremstring -minWords 6) | convertto-titlecase).replace(' ','').substring(0,15)
+
+        LaoreetIpsumDol
+
+    Variant demo that uses my verb-text:convertto-TitleCase to titlecase each word before removing spaces, and truncating to 16 characters.
+    .EXAMPLE
+    $block = @() ; 
+    $block = new-loremstring -minwords 6 | convertto-titlecase ; 
+    $block += "`n`r" ; 
+    $block += new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 ;
+    $block | wrap-text -char 80 ; 
+    Demo building a mixed case 'post' with title of dummy text, word wrapped. Uses my verb-Text module convertTo-Titlecase. 
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(HelpMessage="Min number of words to be returned (defaults to 6)[-minwords 5]")]
+            [int]$minWords = 6, 
+        [Parameter(HelpMessage="Max number of words to be returned[-maxwords 7]")]
+            [int]$maxWords, 
+        [Parameter(HelpMessage="Min number of sentances to be returned(defaults to 1)[-minSentences 1]")]
+            [int]$minSentences = 1, 
+        [Parameter(HelpMessage="Max number of sentances to be returned[-maxSentences 3]")]
+            [int]$maxSentences, 
+        [Parameter(HelpMessage="Number of paragraphs to be returned(defaults to 1)[-numParagraphs 2]")]
+            [int]$numParagraphs = 1,
+        [Parameter(HelpMessage="Switch to use non-Lorem-based words (random 100 words)[-NoLorem]")]
+            [switch]$NoLorem, 
+        [Parameter(HelpMessage="String Array of random words to use with -NoLorem switch (prepopulated with 100 random words from https://sites.google.com/site/thissiteistotallyrandom/100-random-words)[-AltLexicon 'word1','word2']")]
+            [string[]]$AltLexicon = @('sausage','blubber','pencil','cloud','moon','water','computer','school','network','hammer','walking','violently','mediocre','literature','chair','two','window','cords','musical','zebra','xylophone','penguin','home','dog','final','ink','teacher','fun','website','banana','uncle','softly','mega','ten','awesome','attatch','blue','internet','bottle','tight','zone','tomato','prison','hydro','cleaning','telivision','send','frog','cup','book','zooming','falling','evily','gamer','lid','juice','moniter','captain','bonding','loudly','thudding','guitar','shaving','hair','soccer','water','racket','table','late','media','desktop','flipper','club','flying','smooth','monster','purple','guardian','bold','hyperlink','presentation','world','national','comment','element','magic','lion','sand','crust','toast','jam','hunter','forest','foraging','silently','tawesomated','joshing','pong')
+    ) ;
+    $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+    write-verbose "`$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+
+    $lex = "lorem;ipsum;dolor;sit;amet;consectetuer;adipiscing;elit;sed;diam;nonummy;nibh;euismod;tincidunt;ut;laoreet;dolore;magna;aliquam;erat".split(';') ;
+    # seed this with a fresh random list from: https://sites.google.com/site/thissiteistotallyrandom/100-random-words
+
+    if(-not $NoLorem){ $words = $lex } 
+    else {
+        write-host "(using non-Lorum 100-word seed list)" ; 
+        $words = $AltLexicon ;
+    } ; 
+
+    if (($minWords -AND ($maxWords -gt 0)) -AND ($minWords -gt $maxWords)){
+        throw "MinWords cannot be greater than MaxWords." ; 
+    }
+    if (($minSentences -AND ($maxSentences -gt 0)) -AND ($minSentences -gt $maxSentences)){
+        throw "MinSentences cannot be greater than MaxSentences." ; 
+    }
+
+    if($minWords -gt 0 -AND $maxWords -eq 0){
+        $numWords = $minWords
+    } elseif($minWords -gt 0 -AND ($maxWords -gt 0)) {    
+        $pltGRWord = @{
+            Minimum = $minWords ; 
+            Maximum = $maxWords
+        } ; 
+    } ;
+    if($minSentences -gt 0 -AND $maxSentences -eq 0){
+        $numSentences = $minSentences  ; 
+    } elseif($minSentences -gt 0 -AND ($maxSentences -gt 0)) {    
+        $pltGRSent = @{
+            Minimum = $minSentences ; 
+            Maximum = $maxSentences
+        } ; 
+    } ; 
+    
+    if($numWords -eq $null -and ( ($pltGRWord.keys).count -ge 2)){
+        write-verbose "get-Random [words] w`n$(($pltGRWord|out-string).trim())" ; 
+        $numWords = Get-Random @pltGRWord ; 
+    } ; 
+    
+    if($numSentences -eq $null -and ( ($pltGRSent.keys).count -ge 2)){
+        write-verbose "get-Random [sentances] w`n$(($pltGRSent|out-string).trim())" ; 
+        $numSentences = Get-Random @pltGRSent ; 
+    } ; 
+    
+    $smsg = "numWords:$($numWords)" ; 
+    $smsg += "`nnumSentences:$($numSentences)" ; 
+    $smsg += "`nnumParagraphs:$($numParagraphs)" ; 
+    write-verbose $smsg ; 
+
+    $result = New-Object System.Text.StringBuilder ; 
+    for($p = 0; $p -lt $numParagraphs; $p++) {
+        for($s = 0; $s -lt $numSentences; $s++) {
+            for($w = 0; $w -lt $numWords; $w++) {
+                if ($w -gt 0) { $result.Append(" ") | Out-Null }
+                if($w -eq 0){
+                    $word = $words[(Get-Random -Minimum 0 -Maximum $words.Length)]
+                    $result.Append( $word.substring(0,1).toupper() + $word.substring(1).tolower() ) | Out-Null ;
+                } else { 
+                    $result.Append($words[(Get-Random -Minimum 0 -Maximum $words.Length)]) | Out-Null ; 
+                } ; 
+            } ; 
+            $result.Append(". ") | Out-Null ; 
+        } ; 
+        $result.Append("`r`n`r`n") | Out-Null ; 
+    } ; 
+    $result.ToString() | write-output ; 
+}
+
+#*------^ new-LoremString.ps1 ^------
 
 
 #*------v Remove-StringDiacritic.ps1 v------
@@ -2240,7 +2502,7 @@ function test-IsUri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,create-AcronymFromCaps,get-StringHash,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
 
 
 
@@ -2248,8 +2510,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU1MifEypxdhMMvq8cOowfrz3R
-# xP2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU7EoorbsLe0m/OTqPsH8FSfKW
+# OGKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2264,9 +2526,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRk80oF
-# PQUAC6FHUjmeDiq2KDVzzzANBgkqhkiG9w0BAQEFAASBgCuWAfk0qilIM6uCAw4B
-# sOPsvHes5noPZNFi4N6rygJlZ2g91/DtwzAfLWbyIlUeQ7Sr38xioqqUZIniJAae
-# sOof19ZogLJ9P2uhON9adLb8XpFDGV9vRWWR7hxennKEJCCxxsJr9fumyB0k+X/t
-# j8DpuMcXS5v/bjMo4hKNlcoG
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBS12Fk6
+# OD/0QaQacWAyzS8dCMoh1jANBgkqhkiG9w0BAQEFAASBgKgw0hM56U6mNhlEMSMG
+# 7bf+lR41WgIBBIjafueyDeS9ZW0lslXTP3Qx6N2kafY8ZAHGpCha1FMtbLxXkeZu
+# 6dDvlJM1wVQYCDL4dPGgZnwcMpdyA5pNZ4VycAuVVGAemuy6TIcd+2mEF8XpQmTo
+# V1pbDZvQSyC54lZarcCGMGfv
 # SIG # End signature block

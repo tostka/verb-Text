@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 5.2.0.0
+  Version     : 5.3.3.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -307,32 +307,33 @@ function convertFrom-Base64String {
 #*------^ convertFrom-Base64String.ps1 ^------
 
 
-#*------v convertFrom-Html.ps1 v------
-function convertFrom-Html {
+#*------v convert-HtmlCodeToTextTDO.ps1 v------
+function convert-HtmlCodeToTextTDO {
     <#
     .SYNOPSIS
-    convertFrom-Html - Convert specified text html to plain text (replace html tags & entities) and return to pipeline
+    convert-HtmlCodeToTextTDO - Convert specified text html code to plain text (replace html tags & entities, configure whitespace) and return to pipeline
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
     Website     :	http://www.toddomation.com
     Twitter     :	@tostka / http://twitter.com/tostka
     CreatedDate : 2021-05-14
-    FileName    : convertFrom-Html.ps1
+    FileName    : convert-HtmlCodeToTextTDO.ps1
     License     : (non-asserted)
     Copyright   : 
     Github      : https://github.com/tostka
     AddedCredit : Winston Fassett
     AddedWebsite:	http://winstonfassett.com/blog/author/Winston/
     REVISIONS
+    * 8:34 AM 11/8/2023 name-clash with importExcel mod leverage of ConvertFrom-Html(): ren convertFrom-Html -> convert-HtmlCodeToTextTDO (alias:     convertFrom-HtmlTDO ; don't alias to old name, do alias to tagged variant: This doesn't convert web pages, it replaces common html entities, strips tags & configures raw text whitespace
     * 3:11 PM 5/14/2021 convertFrom-Html:init, added $file spec
     .DESCRIPTION
-    convertFrom-Html - Convert specified text html to plain text (replace html tags & entities) and return to pipeline
+    convert-HtmlCodeToTextTDO - Convert specified text html to plain text (replace html tags & entities) and return to pipeline
     Minimal port of Winston Fassett's html-ToText()
     .PARAMETER  string
     File to be Base64 encoded (image, text, whatever)[-string path-to-file]
     .EXAMPLE
-    convertFrom-Html.ps1 -string 'xxxxx' ; 
+    convert-HtmlCodeToTextTDO.ps1 -string 'xxxxx' ; 
     .LINK
     http://winstonfassett.com/blog/2010/09/21/html-to-text-conversion-in-powershell/
     .LINK
@@ -360,6 +361,7 @@ function convertFrom-Html {
 #-=-=-=-=-=-=-=-=
 #>
     [CmdletBinding(DefaultParameterSetName='fromstring')]
+    [Alias('convertFrom-HtmlTDO')]
     PARAM(
         [Parameter(ParameterSetName='fromstring',Position=0,Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted from html to plain text[-string '<b>text</b>']")]
         [System.String]$string,
@@ -418,7 +420,7 @@ function convertFrom-Html {
     $string | write-output ;     
 }
 
-#*------^ convertFrom-Html.ps1 ^------
+#*------^ convert-HtmlCodeToTextTDO.ps1 ^------
 
 
 #*------v Convert-invertCase.ps1 v------
@@ -2502,7 +2504,7 @@ function test-IsUri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convertFrom-Html,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convert-HtmlCodeToTextTDO,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
 
 
 
@@ -2510,8 +2512,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU7EoorbsLe0m/OTqPsH8FSfKW
-# OGKgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUYdENW6pcEIbGVxs3IA3SHO6g
+# QV+gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -2526,9 +2528,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBS12Fk6
-# OD/0QaQacWAyzS8dCMoh1jANBgkqhkiG9w0BAQEFAASBgKgw0hM56U6mNhlEMSMG
-# 7bf+lR41WgIBBIjafueyDeS9ZW0lslXTP3Qx6N2kafY8ZAHGpCha1FMtbLxXkeZu
-# 6dDvlJM1wVQYCDL4dPGgZnwcMpdyA5pNZ4VycAuVVGAemuy6TIcd+2mEF8XpQmTo
-# V1pbDZvQSyC54lZarcCGMGfv
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTd4Bfc
+# 5EgPIRXDAY9nj2/R/v09+TANBgkqhkiG9w0BAQEFAASBgJMpq/qtGeUMbF9bz9pH
+# lW4g6F2Orubda1176htPruAIXZNaUZi2wWCIpa5Ll8TH+3Rr7/jINAxKTGoQzxMd
+# f/HcX2xKauI8KtJ3UqofZgOUfc8MA2vJdH5pz90RCbY7/Pv9EcHg4MVu/lBPE2bT
+# hV5lnPVjiLWjOnm94vani0SV
 # SIG # End signature block
