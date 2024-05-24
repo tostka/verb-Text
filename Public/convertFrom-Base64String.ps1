@@ -23,8 +23,12 @@ function convertFrom-Base64String {
     * 8:26 AM 12/13/2019 convertFrom-Base64String:init
     .DESCRIPTION
     convertFrom-Base64String - Convert specified string from Base64 encoded string back to text and return to pipeline
-    .PARAMETER  string
-    File to be Base64 encoded (image, text, whatever)[-path path-to-file]
+    .PARAMETER string
+    String to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']
+    .PARAMETER SourceFile
+    Optional param that designates path from which to read a file containing Base64 encoded content, to be decoded[-SourceFile 'c:\path-to\base64.txt']
+    .PARAMETER TargetFile
+    Optional param that designates path into which to write the decoded Base64 content [-TargetPath 'c:\path-to\file.png']
     .EXAMPLE
     PS> convertFrom-Base64String -string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8=' ; 
     Convert Base64 encoded string back to original unencoded text
@@ -41,11 +45,11 @@ function convertFrom-Base64String {
     [CmdletBinding()]
     PARAM(
         [Parameter(Position=0,ValueFromPipeline=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
-        [String]$string,
+            [String]$string,
         [Parameter(HelpMessage="Optional param that designates path from which to read a file containing Base64 encoded content, to be decoded[-SourceFile 'c:\path-to\base64.txt']")]
-        [string]$SourceFile,
+            [string]$SourceFile,
         [Parameter(HelpMessage="Optional param that designates path into which to write the decoded Base64 content [-TargetPath 'c:\path-to\file.png']")]
-        [string]$TargetFile
+            [string]$TargetFile
     ) ;
     if($string -AND $SourceFile){
         throw "Please use either -String or -SourceFile, but not both!"
