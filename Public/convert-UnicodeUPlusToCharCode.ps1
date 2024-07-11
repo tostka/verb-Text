@@ -13,12 +13,13 @@ function convert-UnicodeUPlusToCharCode {
     FileName    : convert-UnicodeUPlusToCharCode.ps1
     License     : MIT License
     Copyright   : (c) 2023 Todd Kadrie
-    Github      : https://github.com/tostka/verb-XXX
+    Github      : https://github.com/tostka/verb-Text
     Tags        : Powershell,Unicode,Type,Fonts,Conversion
     AddedCredit : REFERENCE
     AddedWebsite: URL
     AddedTwitter: URL
     REVISIONS
+    * 3:46 PM 7/11/2024 shift into verb-text
     * 8:18 AM 6/20/2024 init, working, though likely/untested that long codepoints fail (at least they did in cmdline testing)
     .DESCRIPTION
     convert-UnicodeUPlusToCharCode - Convert a Unicode U+nnnn literal into a Code Point, Decimal, and equivelent [char]0xnnn string
