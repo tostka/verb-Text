@@ -43,6 +43,7 @@ function convertFrom-Base64String {
     .LINK
     #>
     [CmdletBinding()]
+    [Alias('cfB64')]
     PARAM(
         [Parameter(Position=0,ValueFromPipeline=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
             [String]$string,

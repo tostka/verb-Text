@@ -17,6 +17,7 @@
         AddedCredit : Bryan Dady
         AddedWebsite:	https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
         REVISIONS
+        * 2:22 PM 8/21/2024 add: alias: convertto-StringHash
         * 11:42 AM 11/22/2021 fixed CBH, missing desc to comply w pester
         * 11:59 AM 4/17/2020 updated CBH, moved from incl-servercore to verb-text
         * 9:46 PM 9/1/2019 updated, added Algorithm param, added pshelp
@@ -33,6 +34,7 @@
         .LINK
         https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
         #>
+        [Alias('convertto-StringHash')]
         PARAM (
             [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Specify string to be hashed. Accepts from pipeline.')]
             [alias('text', 'InputObject')]

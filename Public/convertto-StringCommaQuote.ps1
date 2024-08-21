@@ -23,7 +23,8 @@ function convertto-StringCommaQuote{
     .LINK
     https://github.com/tostka/verb-text
     #>
-    [CmdletBinding()] PARAM([Parameter(ValueFromPipeline=$true)][string[]]$String) ;
+    [CmdletBinding()]
+    PARAM([Parameter(ValueFromPipeline=$true)][string[]]$String) ;
     BEGIN{$outs = @()} 
     PROCESS{[array]$outs += $String | foreach-object{$_} ; } 
     END {'"' + $(($outs) -join '","') + '"' | out-string } ; 

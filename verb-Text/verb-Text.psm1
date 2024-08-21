@@ -1,11 +1,11 @@
-﻿# verb-Text.psm1
+﻿# verb-text.psm1
 
 
   <#
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 6.0.0.0
+  Version     : 6.2.1.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -258,6 +258,7 @@ function convertFrom-Base64String {
     .LINK
     #>
     [CmdletBinding()]
+    [Alias('cfB64')]
     PARAM(
         [Parameter(Position=0,ValueFromPipeline=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
             [String]$string,
@@ -701,6 +702,7 @@ function convertTo-Base64String {
     .LINK
     #>
     [CmdletBinding(DefaultParameterSetName='File')]
+    [Alias('CtB64')]
     PARAM(
         [Parameter(Position=0,ValueFromPipeline=$true,HelpMessage="string to be decoded from Base64 [-string 'bXkgKnZlcnkqIG1pbmltYWxseSBvYmZ1c2NhdGVkIGluZm8']")]
             [String]$string,
@@ -1301,7 +1303,8 @@ function convertto-StringCommaQuote{
     .LINK
     https://github.com/tostka/verb-text
     #>
-    [CmdletBinding()] PARAM([Parameter(ValueFromPipeline=$true)][string[]]$String) ;
+    [CmdletBinding()]
+    PARAM([Parameter(ValueFromPipeline=$true)][string[]]$String) ;
     BEGIN{$outs = @()} 
     PROCESS{[array]$outs += $String | foreach-object{$_} ; } 
     END {'"' + $(($outs) -join '","') + '"' | out-string } ; 
@@ -1388,7 +1391,7 @@ function convertTo-StringReverse {
 #*------^ convertTo-StringReverse.ps1 ^------
 
 
-#*------v convertTo-StUdlycaPs.ps1 v------
+#*------v ConvertTo-StudlyCaps.ps1 v------
 function convertTo-StUdlycaPs {
     <#
     .SYNOPSIS
@@ -1434,7 +1437,7 @@ function convertTo-StUdlycaPs {
     $output | write-output ; 
 }
 
-#*------^ convertTo-StUdlycaPs.ps1 ^------
+#*------^ ConvertTo-StudlyCaps.ps1 ^------
 
 
 #*------v convertTo-TitleCase.ps1 v------
@@ -2217,7 +2220,7 @@ function Get-CharInfo {
     .FUNCTIONALITY
     Tested: Windows 8.1/64bit, Powershell 4
             Windows 10 /64bit, Powershell 5
-            Windows 10 /64bit, Powershell Core 6.2.0
+            Windows 10 /64bit, Powershell Core 6.2.1
             Windows 10 /64bit, Powershell Core 7.1.0
     #>
     [CmdletBinding()]
@@ -2439,6 +2442,7 @@ function get-StringHash {
         AddedCredit : Bryan Dady
         AddedWebsite:	https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
         REVISIONS
+        * 2:22 PM 8/21/2024 add: alias: convertto-StringHash
         * 11:42 AM 11/22/2021 fixed CBH, missing desc to comply w pester
         * 11:59 AM 4/17/2020 updated CBH, moved from incl-servercore to verb-text
         * 9:46 PM 9/1/2019 updated, added Algorithm param, added pshelp
@@ -2455,6 +2459,7 @@ function get-StringHash {
         .LINK
         https://www.powershellgallery.com/packages/PSLogger/1.4.3/Content/GetStringHash.psm1
         #>
+        [Alias('convertto-StringHash')]
         PARAM (
             [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Specify string to be hashed. Accepts from pipeline.')]
             [alias('text', 'InputObject')]
@@ -3183,8 +3188,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUUkqOgnJvc4RNQRoGWwX6CFBS
-# WLSgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUt3eeOFQyBnVkMh2v35ct1eG8
+# aGqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -3199,9 +3204,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSlYYZ/
-# vkmQiRlTJ78X6VZUPjInFjANBgkqhkiG9w0BAQEFAASBgF4pNuT+OAdX63eWNgkx
-# pcAbz8GtPbQBc4XzkSVIYkZddHAHRGUCbB4jzXJrSavdvudqW+rjPYKXnRYn0S4j
-# LLQG06KsvzYh6/CHx5qoo/5sN/+ODq8CEkQMUzb7dV+icrr7Kw7M00vPab3tt9Tm
-# OZxXqHDNjEXFzcpyVIcgPRMA
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTIQc8k
+# oCiMKMGFGTZ9Vgtm23A6oDANBgkqhkiG9w0BAQEFAASBgJAi4ifnRm5YyKYU1bP4
+# E0RlvfAUi2cYC+Cq9/61rJM06sjyvw2f6Nconn5CuMdcIQbV0opYinke2tQWSu9d
+# Eqw25lo7LBIi3TgAb2SAp9qIF4Lgc3tSfDHscEd/oSIgHEKFp8bRzxxOH0fM2Igr
+# NqCVsX/dOR7rjzg45WZF7PK8
 # SIG # End signature block
