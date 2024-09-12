@@ -9,7 +9,7 @@ function new-LoremString {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-
+    CreatedDate : 2016-04-04
     FileName    : new-LoremString.ps1
     License     : (Non asserted)
     Copyright   : (Non asserted)
@@ -19,6 +19,7 @@ function new-LoremString {
     AddedWebsite: https://www.powershellgallery.com/packages/LoremIpsum/1.0
     AddedTwitter: @adamdriscoll
     REVISIONS
+    * 4:19 PM 9/11/2024 added trim() to wrap-text outputs (tends to have a leading space)
     * 1:25 PM 6/1/2023 fixed param $AltLexicon; wrapped in @() forced array.
     * 12:47 PM 5/4/2023 Took AD's basic idea (stringbuilder assembly on looping 
         array), and reworked the logic, primarily to require less inputs to get 
@@ -76,7 +77,7 @@ function new-LoremString {
 
     Generate two random paragraphs of 3-5 sentances with 4-8 word each.
     .EXAMPLE
-    PS> new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 | wrap-text -Characters 80 ; 
+    PS> (new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 | wrap-text -Characters 80).trim() ;
 
         Ut erat magna dolor amet magna ipsum erat. Nonummy laoreet nonummy diam erat
         lorem ipsum adipiscing. Ut nibh amet sed euismod magna diam nibh. Ut euismod
@@ -109,7 +110,7 @@ function new-LoremString {
     $block = new-loremstring -minwords 6 | convertto-titlecase ; 
     $block += "`n`r" ; 
     $block += new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 ;
-    $block | wrap-text -char 80 ; 
+    ($block | wrap-text -char 80).trim() ; 
     Demo building a mixed case 'post' with title of dummy text, word wrapped. Uses my verb-Text module convertTo-Titlecase. 
     .LINK
     https://github.com/tostka/verb-text

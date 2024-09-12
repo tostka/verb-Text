@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 6.2.1.0
+  Version     : 6.2.3.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -211,6 +211,111 @@ Integer 'key' [1-25] to be used to encode[-key 2]
 }
 
 #*------^ convert-CaesarCipher.ps1 ^------
+
+
+#*------v Convert-CodePointToPSSyntaxTDO.ps1 v------
+function Convert-CodePointToPSSyntaxTDO {
+    <#
+    .SYNOPSIS
+    Convert-CodePointToPSSyntaxTDO -  Converts a given Unicode CodePoint into the matching PSSyntax ([char]0xnnnn), [char]::ConvertFromUtf32(0xnnnnn)), returned as a Customobject summarizing the input CodePoint, the rendered Character it represents, and PSSyntax necessary to render the codepoint in Powershell
+    .NOTES
+    Version     : 0.0.5
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2024-09-12
+    FileName    : Convert-CodePointToPSSyntaxTDO.ps1
+    License     : MIT License
+    Copyright   : (c) 2024 Todd Kadrie
+    Github      : https://github.com/tostka/verb-io
+    Tags        : Powershell,Host,Console,Output,Formatting
+    AddedCredit : L5257
+    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedTwitter: URL
+    REVISIONS
+    * 2:52 PM 9/12/2024 added CodePoint validator regex for PSCodePoint format (0xnnnn) ;  init
+
+    .DESCRIPTION
+
+    Convert-CodePointToPSSyntaxTDO -  Converts a given Unicode CodePoint into the matching PSSyntax ([char]0xnnnn), [char]::ConvertFromUtf32(0xnnnnn)), returned as a Customobject summarizing the input CodePoint, the rendered Character it represents, and PSSyntax necessary to render the codepoint in Powershell
+
+    .PARAMETER CodePoint
+    Unicode Codepoint (U+1F4AC|\u2717) to be converted into equivelent Powershell Syntax[-CodePoint 'U+1F4AC']
+    .INPUT
+    System.String[]
+    .OUTPUT
+    PSCustomObject summary of Codepoint, Character, and PSSyntax example to render the specified character
+    .EXAMPLE
+    PS> $Returned = Convert-CodePointToPSSyntaxTDO -CodePoint 'U+2620' -verbose
+    PS> $Returned ; 
+
+        CodePoint Character PSSyntax                        
+        --------- --------- --------                        
+        U+2620    ☠         [char]::ConvertFromUtf32(0x2620)
+
+    PS> $Returned.PsSyntax ;
+
+        [char]::ConvertFromUtf32(0x2620)
+
+    Demo conversion of the codepoint for 'Skull & Crossbones' into PS Syntax
+    .EXAMPLE
+    PS> $codes = "U+2620 U+2623" ;     
+    PS> $PSSyntax = ($item.CodePoint.split(' ') | Convert-CodePointToPSSyntaxTDO -Verbose:($PSBoundParameters['Verbose'] -eq $true) | select -expand PSSyntax ) -join ' ' ;         
+    demo splitting a space-delimited set of CodePoints, looping them through Convert-CodePointToPSSyntaxTDO, and then space-joining them on return
+    .LINK
+    .LINK
+    https://github.com/tostka/verb-io
+    #>
+    [CmdletBinding()]
+    PARAM(
+        [Parameter(Mandatory = $true, ValueFromPipeline=$true, HelpMessage = "Unicode Codepoint (U+1F4AC|\u2717) to be converted into equivelent Powershell Syntax[-CodePoint 'U+1F4AC']")]
+        # \u2717 | U+1F600
+        #[ValidatePattern("U\+[0-9a-fA-F]+|\\u[0-9a-fA-F]+")]
+        [ValidatePattern("U\+[0-9a-fA-F]+|\\u[0-9a-fA-F]+|0x[0-9a-fA-F]+")] # updated rgx passes pre-converted PSCodePoint format
+        [string[]]$CodePoint
+    ) ;
+    BEGIN {
+        #region CONSTANTS-AND-ENVIRO #*======v CONSTANTS-AND-ENVIRO v======
+        ${CmdletName} = $PSCmdlet.MyInvocation.MyCommand.Name ;
+        if(($PSBoundParameters.keys).count -ne 0){
+            $PSParameters = New-Object -TypeName PSObject -Property $PSBoundParameters ;
+            write-verbose "$($CmdletName): `$PSBoundParameters:`n$(($PSBoundParameters|out-string).trim())" ;
+        } ;
+        $Verbose = ($VerbosePreference -eq 'Continue') ;
+        #endregion CONSTANTS-AND-ENVIRO #*======^ END CONSTANTS-AND-ENVIRO ^======
+    } ;  # BEG-E
+    PROCESS {
+        foreach($point in $CodePoint){
+            if($point -match "0x[0-9a-fA-F]+"){
+                write-verbose "`$CodePoint $($point) is already in PSCodePoint format" ; 
+                $psCodePoint = $point ; 
+            }else{
+                $psCodePoint = $point.replace('U+','0x').replace('\u','0x') ; 
+            } ; 
+            $PSSyntax = try{
+                [char]$psCodePoint | out-null ;
+                "[char]$($psCodePoint)"| write-output ;
+            } catch {
+                try{
+                    [char]::ConvertFromUtf32($psCodePoint) | out-null;
+                    "[char]::ConvertFromUtf32($($psCodePoint))" | write-output 
+                }catch{throw "Unable to resolve Codepoint $(codepoint) to a working [char] string"}
+            } ; 
+            if($PSSyntax){
+              write-verbose "Character: $($PSSyntax | invoke-expression)`n`PSSyntax:$($PSSyntax)" ; 
+              [pscustomobject]([ordered]@{
+                  CodePoint = $point ; 
+                  Character = $($PSSyntax | iex) ; 
+                  PSSyntax = $PSSyntax ; 
+              }) | write-output ; 
+              #$PSSyntax | write-output ; 
+            } ;    
+        } # loop-E  
+    } 
+    END {} ; 
+}
+
+#*------^ Convert-CodePointToPSSyntaxTDO.ps1 ^------
 
 
 #*------v convertFrom-Base64String.ps1 v------
@@ -591,8 +696,8 @@ Function convertto-AcronymFromCaps {
     REVISIONS   :
     * 9:47 AM 8/31/2023 bad verb: ren create-AcronymFromCaps -> convertto-AcronymFromCaps, alias orig name; CBH, updated examples to have output demo
     * 9:34 AM 3/12/2021 added -doEXOSubstitution to auto-tag 'exo' cmds in generated acronym (part of autoaliasing hybrid cmds across both onprem & EXO); added -verbose support
-    12:14 PM 2/16/2016 - working
-    8:58 AM 2/16/2016 - initial version
+    12:14 PM 2/16.2.36 - working
+    8:58 AM 2/16.2.36 - initial version
     .DESCRIPTION
     convertto-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
     Note:-doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' prefix _for it's own_ new commandlets, necessitating users to retroactrively shift prior use of -commandprefix 'exo', in existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
@@ -2220,7 +2325,7 @@ function Get-CharInfo {
     .FUNCTIONALITY
     Tested: Windows 8.1/64bit, Powershell 4
             Windows 10 /64bit, Powershell 5
-            Windows 10 /64bit, Powershell Core 6.2.1
+            Windows 10 /64bit, Powershell Core 6.2.0
             Windows 10 /64bit, Powershell Core 7.1.0
     #>
     [CmdletBinding()]
@@ -2282,7 +2387,7 @@ public static string Get(char ch) {
                     19968,40956,Lo-Other_Letter,CJK Ideograph
                     44032,55203,Lo-Other_Letter,Hangul Syllable
                     94208,100343,Lo-Other_Letter,Tangut Ideograph
-                    101632,101640,Lo-Other_Letter,Tangut Ideograph Supplement
+                    1016.2.301640,Lo-Other_Letter,Tangut Ideograph Supplement
                     131072,173789,Lo-Other_Letter,CJK Ideograph Extension B
                     173824,177972,Lo-Other_Letter,CJK Ideograph Extension C
                     177984,178205,Lo-Other_Letter,CJK Ideograph Extension D
@@ -2495,7 +2600,7 @@ function new-LoremString {
     Author      : Todd Kadrie
     Website     : http://www.toddomation.com
     Twitter     : @tostka / http://twitter.com/tostka
-    CreatedDate : 2023-
+    CreatedDate : 2016-04-04
     FileName    : new-LoremString.ps1
     License     : (Non asserted)
     Copyright   : (Non asserted)
@@ -2505,6 +2610,7 @@ function new-LoremString {
     AddedWebsite: https://www.powershellgallery.com/packages/LoremIpsum/1.0
     AddedTwitter: @adamdriscoll
     REVISIONS
+    * 4:19 PM 9/11/2024 added trim() to wrap-text outputs (tends to have a leading space)
     * 1:25 PM 6/1/2023 fixed param $AltLexicon; wrapped in @() forced array.
     * 12:47 PM 5/4/2023 Took AD's basic idea (stringbuilder assembly on looping 
         array), and reworked the logic, primarily to require less inputs to get 
@@ -2562,7 +2668,7 @@ function new-LoremString {
 
     Generate two random paragraphs of 3-5 sentances with 4-8 word each.
     .EXAMPLE
-    PS> new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 | wrap-text -Characters 80 ; 
+    PS> (new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 | wrap-text -Characters 80).trim() ;
 
         Ut erat magna dolor amet magna ipsum erat. Nonummy laoreet nonummy diam erat
         lorem ipsum adipiscing. Ut nibh amet sed euismod magna diam nibh. Ut euismod
@@ -2595,7 +2701,7 @@ function new-LoremString {
     $block = new-loremstring -minwords 6 | convertto-titlecase ; 
     $block += "`n`r" ; 
     $block += new-loremstring -minWords 4 -maxWords 13 -minSentences 3 -maxSentences 12 -numParagraphs 2 ;
-    $block | wrap-text -char 80 ; 
+    ($block | wrap-text -char 80).trim() ; 
     Demo building a mixed case 'post' with title of dummy text, word wrapped. Uses my verb-Text module convertTo-Titlecase. 
     .LINK
     https://github.com/tostka/verb-text
@@ -3180,7 +3286,7 @@ function test-IsUri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,convertFrom-Base64String,convert-HtmlCodeToTextTDO,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,convert-UnicodeUPlusToCharCode,Get-CharInfo,ReadUnicodeRanges,ReadUnicodeData,out,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,Convert-CodePointToPSSyntaxTDO,convertFrom-Base64String,convert-HtmlCodeToTextTDO,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,convert-UnicodeUPlusToCharCode,Get-CharInfo,ReadUnicodeRanges,ReadUnicodeData,out,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
 
 
 
@@ -3188,8 +3294,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUt3eeOFQyBnVkMh2v35ct1eG8
-# aGqgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUnU7tJIGpx3hZi5f2YNyS8EMj
+# YoygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -3204,9 +3310,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTIQc8k
-# oCiMKMGFGTZ9Vgtm23A6oDANBgkqhkiG9w0BAQEFAASBgJAi4ifnRm5YyKYU1bP4
-# E0RlvfAUi2cYC+Cq9/61rJM06sjyvw2f6Nconn5CuMdcIQbV0opYinke2tQWSu9d
-# Eqw25lo7LBIi3TgAb2SAp9qIF4Lgc3tSfDHscEd/oSIgHEKFp8bRzxxOH0fM2Igr
-# NqCVsX/dOR7rjzg45WZF7PK8
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSWkJmg
+# 6X3W6TP6obgNy9W20bhTtDANBgkqhkiG9w0BAQEFAASBgALcHve8fkTunF18ByNL
+# wIUQB+jvV42/K/IrmDduJiMIulH5w0omglgeMJZD1wxLet7arG4QJ+W/q0t4721c
+# RycFIZ6RtnKsbi3R05tsGI9SgbRFi8Jp4dp+tveRuHnvJ0nVxSx8Lz5scao8I8Xr
+# xhOrfQAHKgqGAfdNF/g9OOJF
 # SIG # End signature block
