@@ -14,12 +14,13 @@ function Convert-CodePointToPSSyntaxTDO {
     FileName    : Convert-CodePointToPSSyntaxTDO.ps1
     License     : MIT License
     Copyright   : (c) 2024 Todd Kadrie
-    Github      : https://github.com/tostka/verb-io
+    Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Host,Console,Output,Formatting
-    AddedCredit : L5257
-    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedCredit : 
+    AddedWebsite: 
     AddedTwitter: URL
     REVISIONS
+    * 10:10 AM 9/16/2024 corrected github link/module assoc (vio -> vtxt)
     * 2:52 PM 9/12/2024 added CodePoint validator regex for PSCodePoint format (0xnnnn) ;  init
 
     .DESCRIPTION
@@ -50,8 +51,9 @@ function Convert-CodePointToPSSyntaxTDO {
     PS> $PSSyntax = ($item.CodePoint.split(' ') | Convert-CodePointToPSSyntaxTDO -Verbose:($PSBoundParameters['Verbose'] -eq $true) | select -expand PSSyntax ) -join ' ' ;         
     demo splitting a space-delimited set of CodePoints, looping them through Convert-CodePointToPSSyntaxTDO, and then space-joining them on return
     .LINK
+    https://emojipedia.org/
     .LINK
-    https://github.com/tostka/verb-io
+    https://github.com/tostka/verb-text
     #>
     [CmdletBinding()]
     PARAM(
