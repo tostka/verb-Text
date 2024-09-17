@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 6.2.3.0
+  Version     : 6.3.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -227,12 +227,13 @@ function Convert-CodePointToPSSyntaxTDO {
     FileName    : Convert-CodePointToPSSyntaxTDO.ps1
     License     : MIT License
     Copyright   : (c) 2024 Todd Kadrie
-    Github      : https://github.com/tostka/verb-io
+    Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Host,Console,Output,Formatting
-    AddedCredit : L5257
-    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedCredit : 
+    AddedWebsite: 
     AddedTwitter: URL
     REVISIONS
+    * 10:10 AM 9/16/2024 corrected github link/module assoc (vio -> vtxt)
     * 2:52 PM 9/12/2024 added CodePoint validator regex for PSCodePoint format (0xnnnn) ;  init
 
     .DESCRIPTION
@@ -263,8 +264,9 @@ function Convert-CodePointToPSSyntaxTDO {
     PS> $PSSyntax = ($item.CodePoint.split(' ') | Convert-CodePointToPSSyntaxTDO -Verbose:($PSBoundParameters['Verbose'] -eq $true) | select -expand PSSyntax ) -join ' ' ;         
     demo splitting a space-delimited set of CodePoints, looping them through Convert-CodePointToPSSyntaxTDO, and then space-joining them on return
     .LINK
+    https://emojipedia.org/
     .LINK
-    https://github.com/tostka/verb-io
+    https://github.com/tostka/verb-text
     #>
     [CmdletBinding()]
     PARAM(
@@ -696,8 +698,8 @@ Function convertto-AcronymFromCaps {
     REVISIONS   :
     * 9:47 AM 8/31/2023 bad verb: ren create-AcronymFromCaps -> convertto-AcronymFromCaps, alias orig name; CBH, updated examples to have output demo
     * 9:34 AM 3/12/2021 added -doEXOSubstitution to auto-tag 'exo' cmds in generated acronym (part of autoaliasing hybrid cmds across both onprem & EXO); added -verbose support
-    12:14 PM 2/16.2.36 - working
-    8:58 AM 2/16.2.36 - initial version
+    12:14 PM 2/16/2016 - working
+    8:58 AM 2/16/2016 - initial version
     .DESCRIPTION
     convertto-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
     Note:-doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' prefix _for it's own_ new commandlets, necessitating users to retroactrively shift prior use of -commandprefix 'exo', in existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
@@ -2387,7 +2389,7 @@ public static string Get(char ch) {
                     19968,40956,Lo-Other_Letter,CJK Ideograph
                     44032,55203,Lo-Other_Letter,Hangul Syllable
                     94208,100343,Lo-Other_Letter,Tangut Ideograph
-                    1016.2.301640,Lo-Other_Letter,Tangut Ideograph Supplement
+                    101632,101640,Lo-Other_Letter,Tangut Ideograph Supplement
                     131072,173789,Lo-Other_Letter,CJK Ideograph Extension B
                     173824,177972,Lo-Other_Letter,CJK Ideograph Extension C
                     177984,178205,Lo-Other_Letter,CJK Ideograph Extension D

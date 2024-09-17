@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 6.2.3.0
+  Version     : 6.3.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -227,12 +227,13 @@ function Convert-CodePointToPSSyntaxTDO {
     FileName    : Convert-CodePointToPSSyntaxTDO.ps1
     License     : MIT License
     Copyright   : (c) 2024 Todd Kadrie
-    Github      : https://github.com/tostka/verb-io
+    Github      : https://github.com/tostka/verb-text
     Tags        : Powershell,Host,Console,Output,Formatting
-    AddedCredit : L5257
-    AddedWebsite: https://community.spiceworks.com/people/lburlingame
+    AddedCredit : 
+    AddedWebsite: 
     AddedTwitter: URL
     REVISIONS
+    * 10:10 AM 9/16/2024 corrected github link/module assoc (vio -> vtxt)
     * 2:52 PM 9/12/2024 added CodePoint validator regex for PSCodePoint format (0xnnnn) ;  init
 
     .DESCRIPTION
@@ -263,8 +264,9 @@ function Convert-CodePointToPSSyntaxTDO {
     PS> $PSSyntax = ($item.CodePoint.split(' ') | Convert-CodePointToPSSyntaxTDO -Verbose:($PSBoundParameters['Verbose'] -eq $true) | select -expand PSSyntax ) -join ' ' ;         
     demo splitting a space-delimited set of CodePoints, looping them through Convert-CodePointToPSSyntaxTDO, and then space-joining them on return
     .LINK
+    https://emojipedia.org/
     .LINK
-    https://github.com/tostka/verb-io
+    https://github.com/tostka/verb-text
     #>
     [CmdletBinding()]
     PARAM(
@@ -696,8 +698,8 @@ Function convertto-AcronymFromCaps {
     REVISIONS   :
     * 9:47 AM 8/31/2023 bad verb: ren create-AcronymFromCaps -> convertto-AcronymFromCaps, alias orig name; CBH, updated examples to have output demo
     * 9:34 AM 3/12/2021 added -doEXOSubstitution to auto-tag 'exo' cmds in generated acronym (part of autoaliasing hybrid cmds across both onprem & EXO); added -verbose support
-    12:14 PM 2/16.2.36 - working
-    8:58 AM 2/16.2.36 - initial version
+    12:14 PM 2/16/2016 - working
+    8:58 AM 2/16/2016 - initial version
     .DESCRIPTION
     convertto-AcronymFromCaps - Creates an Acroynm From string specified, by extracting only the Capital letters from the string
     Note:-doEXOSubstitution covers both 'exo' and 'xo' as String substrings because MS's newer ExchangeOnline v2 module arbitrarily blocks/reserves 'exo' prefix _for it's own_ new commandlets, necessitating users to retroactrively shift prior use of -commandprefix 'exo', in existing code, to another variant. In my case I routinely shift to 'xo' as prefix. 
@@ -2387,7 +2389,7 @@ public static string Get(char ch) {
                     19968,40956,Lo-Other_Letter,CJK Ideograph
                     44032,55203,Lo-Other_Letter,Hangul Syllable
                     94208,100343,Lo-Other_Letter,Tangut Ideograph
-                    1016.2.301640,Lo-Other_Letter,Tangut Ideograph Supplement
+                    101632,101640,Lo-Other_Letter,Tangut Ideograph Supplement
                     131072,173789,Lo-Other_Letter,CJK Ideograph Extension B
                     173824,177972,Lo-Other_Letter,CJK Ideograph Extension C
                     177984,178205,Lo-Other_Letter,CJK Ideograph Extension D
@@ -3294,8 +3296,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUnU7tJIGpx3hZi5f2YNyS8EMj
-# YoygggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUbP0iMWj5YuVBO6OBNjXD9dIT
+# UMegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -3310,9 +3312,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSWkJmg
-# 6X3W6TP6obgNy9W20bhTtDANBgkqhkiG9w0BAQEFAASBgALcHve8fkTunF18ByNL
-# wIUQB+jvV42/K/IrmDduJiMIulH5w0omglgeMJZD1wxLet7arG4QJ+W/q0t4721c
-# RycFIZ6RtnKsbi3R05tsGI9SgbRFi8Jp4dp+tveRuHnvJ0nVxSx8Lz5scao8I8Xr
-# xhOrfQAHKgqGAfdNF/g9OOJF
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTV59L2
+# dTb24hz1B9f3lvVaLvtVFjANBgkqhkiG9w0BAQEFAASBgEJ0BLnBKz2NF8rntyhw
+# EnkVXML1gzZch9U+v6e8YaIPC3w4nj71lbO1bQO+ix9zctg5H1w/vJsuWWJRJjxe
+# qq+uMoIiJ3K81Yq0EkEswelI5snPIFlwvNcH9DOefCoU/ljV4N/+DGWg5DXFvl8r
+# qeraMBiTOOfHcy4510KA1mVP
 # SIG # End signature block
