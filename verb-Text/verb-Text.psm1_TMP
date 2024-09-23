@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 6.3.0.0
+  Version     : 6.4.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -991,6 +991,72 @@ function ConvertTo-CamelCase {
 }
 
 #*------^ ConvertTo-CamelCase.ps1 ^------
+
+
+#*------v ConvertTo-CleanString.ps1 v------
+function ConvertTo-CleanString {
+    <#
+    .SYNOPSIS
+    ConvertTo-CleanString() - Wrapper function for verb-text\Remove-StringDiacritic() & verb-text\Remove-StringLatinCharacters(): Replaces diacritics (accents) characters and Latin (Polish crossed-L) chars with plain text equivs (Pipelines string through both funcs, in series)
+    .NOTES
+    Version     : 1.0.0
+	Author      : Todd Kadrie
+	Website     : http://www.toddomation.com
+	Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2019-3-22
+    FileName    : ConvertTo-CleanString.ps1
+License     : MIT License
+Copyright   : (c) 2024 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text,String,ForeignLanguage,Language
+    REVISIONS
+    * 9:06 AM 9/23/2024 init
+    .DESCRIPTION
+    ConvertTo-CleanString() - Wrapper function for verb-text\Remove-StringDiacritic() & verb-text\Remove-StringLatinCharacters(): Replaces diacritics (accents) characters and Latin (Polish crossed-L) chars with plain text equivs (Pipelines string through both funcs, in series)
+    .PARAMETER String ;
+    Specifies the String(s) on which the diacritics or latin/characters need to be removed ;
+    .EXAMPLE
+	PS> $clean = ConvertTo-CleanString -String "Helen Bräuchlę"  ;
+	PS> write-host "'$($clean)'" ;
+
+		'Helen Brauchle'
+	.EXAMPLE
+	write-verbose "Note: Clipboard tends to paste latin cyrillics as western charcters (removes diacritical from 'ę', pastes as 'e'), so pull from clipboard into a variable for processing, to ensure we're converting the raw latin characters with the functions" ;
+	PS> $in = get-clipboard ;
+	PS> write-host "'$($in)'" ;
+	PS> [regex]$rgxAccentedNameChars = "[^a-zA-Z0-9\s\.\(\)\{\}\/\&\$\#\@\,\`"\'\’\:\–_-]" ; 
+	PS> if($in -match $rgxAccentedNameChars){
+	PS> 	$clean = $in |ConvertTo-CleanString ;
+	PS> 	write-host "'$($clean)'" ;
+	PS> } else {write-host "already clean raw text:$(in)" } ; 
+	Demo pipeline conversion, sourced from clipboard (rather than pasted text string), avoids autoconversion performed on paste to console, by Powershell.
+    .LINK
+    https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CMdletBinding()]
+    PARAM (
+      [Parameter(Mandatory = $true,Position = 0,ValueFromPipeline = $true,ValueFromPipelineByPropertyName = $true, HelpMessage = 'Specifies the String(s) on which the diacritics need to be removed')]
+		  [ValidateNotNullOrEmpty()][Alias('Text')]
+		  [System.String[]]$String
+    ) ;
+    foreach ($StringValue in $String) {
+        Write-Verbose -Message "$StringValue"
+        TRY {
+            # pipe stringvalue through Remove-StringDiacritic & Remove-StringLatinCharacters (Cyrillic)
+            $StringValue |Remove-StringDiacritic -Verbose:($PSBoundParameters['Verbose'] -eq $true) |Remove-StringLatinCharacters -Verbose:($PSBoundParameters['Verbose'] -eq $true)
+            #Write-Output $($NewString -as [string]) ;
+        } CATCH {
+			$ErrTrapd=$Error[0] ;
+			$smsg = "`n$(($ErrTrapd | fl * -Force|out-string).trim())" ;
+			if ($logging) { Write-Log -LogContent $smsg -Path $logfile -useHost -Level WARN } #Error|Warn|Debug
+			else{ write-warning "$((get-date).ToString('HH:mm:ss')):$($smsg)" } ;
+		} ; 
+    } ;
+}
+
+#*------^ ConvertTo-CleanString.ps1 ^------
 
 
 #*------v ConvertTo-L33t.ps1 v------
@@ -2815,11 +2881,14 @@ function Remove-StringDiacritic {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text,String,ForeignLanguage,Language
     REVISIONS
+    * 3:42 PM 9/23/2024 added regex pretest example
     * 10:54 AM 1/17/2023 # psv2 bug: $psitem isn't supported, need to use $_
     * 1:50 PM 11/22/2021 added param pipeline support & hepmessage on params
     * Mar 22, 2019, init
     .DESCRIPTION
     Remove-StringDiacritic() - This function will remove the diacritics (accents) characters from a string.unaccented characters.
+    
+    Note verb-text\converTo-CleanString() wraps this and Remove-StringLatinCharacters (pipeline passthrough)
     .PARAMETER String ;
     Specifies the String(s) on which the diacritics need to be removed ;
     .PARAMETER NormalizationForm ;
@@ -2828,6 +2897,16 @@ function Remove-StringDiacritic {
     .EXAMPLE
     PS C:\> Remove-StringDiacritic "L'�t� de Rapha�l" ;
     L'ete de Raphael ;
+    .EXAMPLE
+    write-verbose "Note: Clipboard tends to paste latin cyrillics as western charcters (removes diacritical from 'ę', pastes as 'e'), so pull from clipboard into a variable for processing, to ensure we're converting the raw latin characters with the functions" ;
+    PS> $in = get-clipboard ;
+    PS> write-host "'$($in)'" ;
+    PS> [regex]$rgxAccentedNameChars = "[^a-zA-Z0-9\s\.\(\)\{\}\/\&\$\#\@\,\`"\'\’\:\–_-]" ; 
+    PS> if($in -match $rgxAccentedNameChars){
+    PS> 	$clean = $in |ConvertTo-CleanString ;
+    PS> 	write-host "'$($clean)'" ;
+    PS> } else {write-host "already clean raw text:$(in)" } ; 
+    Demo pipeline conversion, sourced from clipboard (rather than pasted text string), avoids autoconversion performed on paste to console, by Powershell.
     .LINK
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
     #>
@@ -2880,15 +2959,28 @@ function Remove-StringLatinCharacters {
     Github      : https://github.com/tostka
     Tags        : Powershell,Text,String,ForeignLanguage,Language
     REVISIONS   :
+    * 3:42 PM 9/23/2024 added regex pretest example
     * 1:53 PM 11/22/2021 added param pipeline support
     * May 21, 2015 posted version
     .DESCRIPTION
     Remove-StringLatinCharacters() - Substitute Cyrillic characters into normal unaccented characters. Addon to Remove-Stringdiacriic, converts untouched Polish crossed-L to L. But doesn't proper change some german chars (rplcs german est-set with ? -> do Remove-StringDiacritic first, and it won't damage german).
+    
+    Note verb-text\converTo-CleanString() wraps this and Remove-StringDiacritic (pipeline passthrough)
     .PARAMETER String ;
     Specifies the String(s) on which the latin chars need to be removed ;
     .EXAMPLE
     Remove-StringLatinCharacters -string "string" ;
-    Substitute norma unaccented chars for cyrillic chars in the string specified
+    Substitute normal unaccented chars for cyrillic chars in the string specified
+    .EXAMPLE
+    write-verbose "Note: Clipboard tends to paste latin cyrillics as western charcters (removes diacritical from 'ę', pastes as 'e'), so pull from clipboard into a variable for processing, to ensure we're converting the raw latin characters with the functions" ;
+    PS> $in = get-clipboard ;
+    PS> write-host "'$($in)'" ;
+    PS> [regex]$rgxAccentedNameChars = "[^a-zA-Z0-9\s\.\(\)\{\}\/\&\$\#\@\,\`"\'\’\:\–_-]" ; 
+    PS> if($in -match $rgxAccentedNameChars){
+    PS> 	$clean = $in | Remove-StringLatinCharacters ;
+    PS> 	write-host "'$($clean)'" ;
+    PS> } else {write-host "already clean raw text:$(in)" } ; 
+    Demo pipeline conversion, sourced from clipboard (rather than pasted text string), avoids autoconversion performed on paste to console, by Powershell.
     .LINK
     https://lazywinadmin.com/2015/05/powershell-remove-diacritics-accents.html
     #>
@@ -3288,7 +3380,7 @@ function test-IsUri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,Convert-CodePointToPSSyntaxTDO,convertFrom-Base64String,convert-HtmlCodeToTextTDO,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,convert-UnicodeUPlusToCharCode,Get-CharInfo,ReadUnicodeRanges,ReadUnicodeData,out,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,Convert-CodePointToPSSyntaxTDO,convertFrom-Base64String,convert-HtmlCodeToTextTDO,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-CleanString,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,convert-UnicodeUPlusToCharCode,Get-CharInfo,ReadUnicodeRanges,ReadUnicodeData,out,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
 
 
 

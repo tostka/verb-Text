@@ -69,7 +69,7 @@ Description = 'Generic text-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('compare-CodeRevision','convert-CaesarCipher','_encode','_decode','Convert-CodePointToPSSyntaxTDO','convertFrom-Base64String','convert-HtmlCodeToTextTDO','Convert-invertCase','convert-Rot13','convert-Rot47','convertto-AcronymFromCaps','convertTo-Base64String','convertto-Base64StringCommaQuoted','ConvertTo-CamelCase','ConvertTo-CleanString','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-PSHelpExample','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertto-StringCommaQuote','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedText','convert-UnicodeUPlusToCharCode','Get-CharInfo','ReadUnicodeRanges','ReadUnicodeData','out','get-StringHash','new-LoremString','Remove-StringDiacritic','Remove-StringLatinCharacters','Test-IsGuid','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','test-IsUri')
+FunctionsToExport = @('compare-CodeRevision','convert-CaesarCipher','_encode','_decode','Convert-CodePointToPSSyntaxTDO','convertFrom-Base64String','convert-HtmlCodeToTextTDO','Convert-invertCase','convert-Rot13','convert-Rot47','convertto-AcronymFromCaps','convertTo-Base64String','convertto-Base64StringCommaQuoted','ConvertTo-CamelCase','ConvertTo-CleanString','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-PSHelpExample','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertto-StringCommaQuote','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedText','convert-UnicodeUPlusToCharCode','Get-CharInfo','ReadUnicodeRanges','ReadUnicodeData','out','get-StringHash','new-LoremString','Remove-StringDiacritic','Remove-StringLatinCharacters','resolve-user','Test-IsGuid','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','test-IsUri')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5ervELcywcjtaxYAp+6vOV+m
-# SXegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUQ5NChe5/YlFg86mzAjCEzuwY
+# WsWgggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRXvjyn
-# 8ngqo4huDesOIstFgvSXIzANBgkqhkiG9w0BAQEFAASBgKzAHUPngtgP2QIpWHu3
-# pwd4xXTPQxSWutI6BWXLHUZxsCnB/LnU0kGfOqvHQZksPDhlEpTQZPEp7sMP4hND
-# TawnAAvvCNfQxX8P9w4adNaQFNqCHXoc63ZK96pWnEgTyRI+es5f97Z6xZQhnOEJ
-# cHvxV+QCchFWnUepEQ697kIf
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBR4NB1L
+# BZEihhQrgM/cwNss5hB7hzANBgkqhkiG9w0BAQEFAASBgAaPNIydAgrZSoaEFNOK
+# +wfiK7/XAvv1Rt68FV1raXhvJSShLQCfs2yf0ZPjiaQWG8kOoFhtPENte9Vhva7G
+# baCx12r10QIl1WNYIb3JivbecDKP1m2/Phu83lzaDOktXNc+7ancue5GBDgoSkj6
+# GZDbBf8A8G9mo5vgczbQxm1I
 # SIG # End signature block
