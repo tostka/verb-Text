@@ -12,7 +12,7 @@
 RootModule = 'verb-Text.psm1'
 
 # Version number of this module.
-ModuleVersion = '6.4.0'
+ModuleVersion = '7.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Generic text-related functions'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('compare-CodeRevision','convert-CaesarCipher','_encode','_decode','Convert-CodePointToPSSyntaxTDO','convertFrom-Base64String','convert-HtmlCodeToTextTDO','Convert-invertCase','convert-Rot13','convert-Rot47','convertto-AcronymFromCaps','convertTo-Base64String','convertto-Base64StringCommaQuoted','ConvertTo-CamelCase','ConvertTo-CleanString','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-PSHelpExample','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertto-StringCommaQuote','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedText','convert-UnicodeUPlusToCharCode','Get-CharInfo','ReadUnicodeRanges','ReadUnicodeData','out','get-StringHash','new-LoremString','Remove-StringDiacritic','Remove-StringLatinCharacters','Test-IsGuid','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','test-IsUri')
+FunctionsToExport = @('Get-SetupTextVersionTDO','compare-CodeRevision','convert-CaesarCipher','_encode','_decode','Convert-CodePointToPSSyntaxTDO','convertFrom-Base64String','convert-HtmlCodeToTextTDO','Convert-invertCase','convert-Rot13','convert-Rot47','convertto-AcronymFromCaps','convertTo-Base64String','convertto-Base64StringCommaQuoted','ConvertTo-CamelCase','ConvertTo-CleanString','ConvertTo-L33t','ConvertTo-lowerCamelCase','convertTo-PSHelpExample','convertTo-QuotedList','ConvertTo-SCase','ConvertTo-SNAKE_CASE','convertto-StringCommaQuote','ConvertTo-StringQuoted','convertTo-StringReverse','convertTo-StUdlycaPs','convertTo-TitleCase','convertTo-UnWrappedText','convertTo-WordsReverse','convertTo-WrappedText','convert-UnicodeUPlusToCharCode','Get-CharInfo','ReadUnicodeRanges','ReadUnicodeData','out','get-randomStringTDO','get-StringHash','new-LoremString','Remove-StringDiacritic','Remove-StringLatinCharacters','Test-IsGuid','test-IsNumeric','test-IsRegexPattern','test-IsRegexValid','test-IsUri')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
@@ -87,7 +87,7 @@ AliasesToExport = '*'
 # ModuleList = @()
 
 # List of all files packaged with this module
-FileList = @('Quick-Start-Installation-and-Example.md','LICENSE','CHANGELOG.md','LICENSE.txt','README.md')
+FileList = @('Quick-Start-Installation-and-Example.md','LICENSE','5x7-flf.zip','6x10-flf.zip','6x9-flf.zip','banner-flf.zip','banner3-D-flf.zip','banner3-flf.zip','banner4-flf.zip','chartr-flf.zip','clb6x10-flf.zip','clb8x10-flf.zip','clb8x8-flf.zip','cli8x8-flf.zip','clr4x6-flf.zip','clr5x10-flf.zip','clr5x6-flf.zip','clr5x8-flf.zip','clr6x10-flf.zip','clr6x6-flf.zip','clr6x8-flf.zip','clr7x10-flf.zip','clr7x8-flf.zip','clr8x10-flf.zip','clr8x8-flf.zip','cour-flf.zip','courb-flf.zip','helv-flf.zip','sans-flf.zip','sansb-flf.zip','tty-flf.zip','ttyb-flf.zip','utopia-flf.zip','utopiab-flf.zip','xbrite-flf.zip','xbriteb-flf.zip','xcour-flf.zip','xcourb-flf.zip','xhelv-flf.zip','xhelvb-flf.zip','xsbook-flf.zip','xtty-flf.zip','xttyb-flf.zip','CHANGELOG.md','LICENSE.txt','README.md')
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
@@ -126,8 +126,8 @@ PrivateData = @{
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQU5ervELcywcjtaxYAp+6vOV+m
-# SXegggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUyXJy490KO3zs25MZ4kK0mm/m
+# ei2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -142,9 +142,9 @@ PrivateData = @{
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBRXvjyn
-# 8ngqo4huDesOIstFgvSXIzANBgkqhkiG9w0BAQEFAASBgKzAHUPngtgP2QIpWHu3
-# pwd4xXTPQxSWutI6BWXLHUZxsCnB/LnU0kGfOqvHQZksPDhlEpTQZPEp7sMP4hND
-# TawnAAvvCNfQxX8P9w4adNaQFNqCHXoc63ZK96pWnEgTyRI+es5f97Z6xZQhnOEJ
-# cHvxV+QCchFWnUepEQ697kIf
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBQmkv+6
+# bRLG8XXKGB3VAbNYmnxc6zANBgkqhkiG9w0BAQEFAASBgJdSP2FLdsbdRSCUXdzn
+# h04hePjsSxhU6Axv7cvYFtG1C8kyZCV97j7TuYjxUo+HYe3y4+nuFyGLWfli4QpV
+# A6x85FSuwzU8dTGP8Nvkev+cH//Vc8L50hC6lFc05w7CU1AwPI7gEfUiADMhplzK
+# Xvdzk609ZJ0qbB12x3rgC7+I
 # SIG # End signature block

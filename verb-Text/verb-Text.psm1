@@ -5,7 +5,7 @@
   .SYNOPSIS
   verb-Text - Generic text-related functions
   .NOTES
-  Version     : 6.4.0.0
+  Version     : 7.0.0.0
   Author      : Todd Kadrie
   Website     :	https://www.toddomation.com
   Twitter     :	@tostka
@@ -31,6 +31,103 @@
 #*======v FUNCTIONS v======
 
 
+
+
+#*------v c.ps1 v------
+Function Get-SetupTextVersionTDO {
+        <#
+        .SYNOPSIS
+        Get-SetupTextVersionTDO - Resolves an Exchange Server binary file (.exe, .dll, etc)'s SemanticVersion value (in 4-integer dot-separated format), to matching Exchange Version Text string. Works for either installed bins, or setup cab bins.
+        .NOTES
+        Version     : 0.0.
+        Author      : Todd Kadrie
+        Website     : http://www.toddomation.com
+        Twitter     : @tostka / http://twitter.com/tostka
+        CreatedDate : 20250711-0423PM
+        FileName    : Get-SetupTextVersionTDO.ps1
+        License     : (none asserted)
+        Copyright   : (none asserted)
+        Github      : https://github.com/tostka/verb-ex2010
+        Tags        : Powershell,Exchange,ExchangeServer,Install,Patch,Maintenance
+        AddedCredit : Michel de Rooij / michel@eightwone.com
+        AddedWebsite: http://eightwone.com
+        AddedTwitter: URL
+        REVISIONS
+        * 9:59 AM 9/24/2025 second thought, this doesn't do the file lookup, it's a straight up low-brow alt to Resolve-xopBuildSemVersToTextNameTDO: dump it, alias the name
+        * 9:11 AM 9/24/2025 ren Get-SetupTextVersionTDO -> Get-xopSetupTextVersionTDO() ; * 10:48 AM 9/22/2025 port to vx10 from xopBuildLibrary; add CBH, and Adv Function specs
+        * 1:58 PM 8/8/2025 added CBH; init; renamed AdminAccount -> Account, aliased  orig param and logon variant. ren: Get-SetupTextVersionTDO -> Get-SetupTextVersionTDO, aliased orig name
+        .DESCRIPTION
+        Get-SetupTextVersionTDO - Resolves an Exchange Server binary file (.exe, .dll, etc)'s SemanticVersion value (in 4-integer dot-separated format), to matching Exchange Version Text string. Works for either installed bins, or setup cab bins.
+        
+        This is designed to track the core/build-installable CU & RTM builds (vs hotfixes etc).
+        Evaluates by using vio\get-FileVersionTDO() reading the (gcm ExSetup.exe) revision (which reflects last installed CU).
+        
+        This version, as of 10:42 AM 9/22/2025, documents the following specific revisions of Exchange Server
+        
+            $EX2016SETUPEXE_CU23= 'Exchange Server 2016 Cumulative Update 23';
+            $EX2019SETUPEXE_CU10= 'Exchange Server 2019 CU10';
+            $EX2019SETUPEXE_CU11= 'Exchange Server 2019 CU11';
+            $EX2019SETUPEXE_CU12= 'Exchange Server 2019 CU12';
+            $EX2019SETUPEXE_CU13= 'Exchange Server 2019 CU13';
+            $EX2019SETUPEXE_CU14= 'Exchange Server 2019 CU14';
+            $EX2019SETUPEXE_CU15= 'Exchange Server 2019 CU15';
+            $EXSESETUPEXE_RTM= 'Exchange Server SE RTM';
+        
+        Requires manual updates to track new CUs over time.
+        
+        
+        .PARAMETER FileVersion
+        Exchange Server binary file (.exe, .dll, etc)'s SemanticVersion value (from FileVersionInfo.ProductVersion in Powershell, or ProductVersion in Explorer), in 4-integer dot-separated format[-FileVersion '15.01.2507.006']
+        .INPUTS
+        None, no piped input.
+        .OUTPUTS
+        System.Object summary of Exchange server descriptors, and service statuses.
+        .EXAMPLE
+        PS> $SourcePath = 'D:\cab\ExchangeServer2016-x64-CU23-ISO\unpacked'  ; 
+        PS> $SetupVersion= Get-DetectedFileVersion "$($SourcePath)\Setup\ServerRoles\Common\ExSetup.exe" ; 
+        PS> $SetupVersionText= Get-SetupTextVersion $SetupVersion ; 
+        Demo pulling setup CAB version
+        .EXAMPLE
+        PS> if($InstalledSetup= (gcm ExSetup.exe).source){$InstalledSetupVersionText= Get-SetupTextVersion $InstalledSetup } ; 
+        Demo pulling installed bin version, by way of D:\Program Files\Microsoft\Exchange Server\V15\Bin\ExSetup.exe ProductVersion        
+        .LINK
+        https://github.org/tostka/verb-io/
+        #>
+        [CmdletBinding()]
+        [alias('Get-SetupTextVersion821')]
+        PARAM(
+            [Parameter(Mandatory=$true,HelpMessage = "Exchange Server binary file (.exe, .dll, etc)'s SemanticVersion value (from FileVersionInfo.ProductVersion in Powershell, or ProductVersion in Explorer), in 4-integer dot-separated format[-FileVersion '15.01.2507.006']")]
+                [string]$FileVersion
+        ) ;
+        # ensure dep constants are defined
+        if($EX2016SETUPEXE_CU23){$EX2016SETUPEXE_CU23            = '15.01.2507.006'} ;         
+        if($EX2019SETUPEXE_CU10){$EX2019SETUPEXE_CU10            = '15.02.0922.007'} ; 
+        if($EX2019SETUPEXE_CU11){$EX2019SETUPEXE_CU11            = '15.02.0986.005'} ; 
+        if($EX2019SETUPEXE_CU13){$EX2019SETUPEXE_CU13            = '15.02.1258.012'} ; 
+        if($EX2019SETUPEXE_CU14){$EX2019SETUPEXE_CU14            = '15.02.1544.004'} ; 
+        if($EX2019SETUPEXE_CU15){$EX2019SETUPEXE_CU15            = '15.02.1748.008'} ; 
+        if($EXSESETUPEXE_RTM){$EXSESETUPEXE_RTM               = '15.02.2562.017'} ; 
+        # supported versions lookup table (maps semvers above to text string)
+        $Versions= @{
+            $EX2016SETUPEXE_CU23= 'Exchange Server 2016 Cumulative Update 23';
+            $EX2019SETUPEXE_CU10= 'Exchange Server 2019 CU10';
+            $EX2019SETUPEXE_CU11= 'Exchange Server 2019 CU11';
+            $EX2019SETUPEXE_CU12= 'Exchange Server 2019 CU12';
+            $EX2019SETUPEXE_CU13= 'Exchange Server 2019 CU13';
+            $EX2019SETUPEXE_CU14= 'Exchange Server 2019 CU14';
+            $EX2019SETUPEXE_CU15= 'Exchange Server 2019 CU15';
+            $EXSESETUPEXE_RTM= 'Exchange Server SE RTM';
+        }
+        $res= "Unsupported version (build $FileVersion)"
+        $Versions.GetEnumerator() | Sort-Object -Property {[System.Version]$_.Name} | ForEach-Object {
+            If( [System.Version]$FileVersion -ge [System.Version]$_.Name) {
+                $res= '{0} (build {1})' -f $_.Value, $FileVersion
+            }
+        }
+        return $res
+    }
+
+#*------^ c.ps1 ^------
 
 
 #*------v compare-CodeRevision.ps1 v------
@@ -423,7 +520,7 @@ function convertFrom-Base64String {
 function convert-HtmlCodeToTextTDO {
     <#
     .SYNOPSIS
-    convert-HtmlCodeToTextTDO - Convert specified text html code to plain text (replace html tags & entities, configure whitespace) and return to pipeline
+    convert-HtmlCodeToTextTDO - Convert specified text html code or encoded-URL strings to plain text (replace html tags & entities, configure whitespace, decode encodings) and return to pipeline
     .NOTES
     Version     : 1.0.0
     Author      : Todd Kadrie
@@ -437,13 +534,17 @@ function convert-HtmlCodeToTextTDO {
     AddedCredit : Winston Fassett
     AddedWebsite:	http://winstonfassett.com/blog/author/Winston/
     REVISIONS
+    # * 9:24 AM 9/25/2025 add -UrlDecode support, to unencode url's ; add -PlusLiteral steering + handling logic; $rgxURLDecodeFilter as a encoded url detection filter rgx
+         fixed CBH params (didn't reflect param help msg specs)
     * 8:34 AM 11/8/2023 name-clash with importExcel mod leverage of ConvertFrom-Html(): ren convertFrom-Html -> convert-HtmlCodeToTextTDO (alias:     convertFrom-HtmlTDO ; don't alias to old name, do alias to tagged variant: This doesn't convert web pages, it replaces common html entities, strips tags & configures raw text whitespace
     * 3:11 PM 5/14/2021 convertFrom-Html:init, added $file spec
     .DESCRIPTION
-    convert-HtmlCodeToTextTDO - Convert specified text html to plain text (replace html tags & entities) and return to pipeline
+    convert-HtmlCodeToTextTDO - Convert specified text html code or encoded-URL strings to plain text (replace html tags & entities, configure whitespace, decode encodings) and return to pipeline
     Minimal port of Winston Fassett's html-ToText()
-    .PARAMETER  string
-    File to be Base64 encoded (image, text, whatever)[-string path-to-file]
+    .PARAMETER string
+    String to be converted from html to plain text[-string '<b>text</b>']
+    .PARAMETERFile
+    File to be converted from HTML to Text (and returned to pipeline)[-file c:\pathto\file.html]
     .EXAMPLE
     convert-HtmlCodeToTextTDO.ps1 -string 'xxxxx' ; 
     .LINK
@@ -476,11 +577,16 @@ function convert-HtmlCodeToTextTDO {
     [Alias('convertFrom-HtmlTDO')]
     PARAM(
         [Parameter(ParameterSetName='fromstring',Position=0,Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true,HelpMessage="String to be converted from html to plain text[-string '<b>text</b>']")]
-        [System.String]$string,
-        [Parameter(ParameterSetName='fromfile',HelpMessage="File to be converted from HTML to Text (and returned to pipeline)[-PARAM SAMPLEINPUT]")]
-        [ValidateScript({Test-Path $_})]
-        [string]$File
+            [System.String]$string,
+        [Parameter(ParameterSetName='fromfile',HelpMessage="File to be converted from HTML to Text (and returned to pipeline)[-file c:\pathto\file.html]")]
+            [ValidateScript({Test-Path $_})]
+            [string]$File,
+        [Parameter(ParameterSetName='fromstring',HelpMessage="Switch to treat plus-signs as literal pluses (suitable for decoding individual components of a URL, vs default treatment of plus-sign's as encoded spaces, e.g. as part of URL query strings)[-string '<b>text</b>']")]
+            [switch]$PlusLiteral,
+        [Parameter(ParameterSetName='fromstring',HelpMessage="Switch to force URLDecode pass on string(normally triggered only on [?%+] match in string) [-UrlDecode']")]
+            [switch]$UrlDecode
     ) ;
+    $rgxURLDecodeFilter = '[?%+]'
     if($File){
         $String = (get-content $file -encoding byte) ; 
     } ;
@@ -491,7 +597,7 @@ function convert-HtmlCodeToTextTDO {
 
     # remove invisible content
     @('head', 'style', 'script', 'object', 'embed', 'applet', 'noframes', 'noscript', 'noembed') | % {
-    $string = $string -replace "<$_[^>]*?>.*?</$_>", ""
+        $string = $string -replace "<$_[^>]*?>.*?</$_>", ""
     }
     write-verbose "removed invisible blocks: `n`n$string`n"
 
@@ -511,24 +617,40 @@ function convert-HtmlCodeToTextTDO {
 
     # replace common entities
     @( 
-    @("&amp;bull;", " * "),
-    @("&amp;lsaquo;", "<"),
-    @("&amp;rsaquo;", ">"),
-    @("&amp;(rsquo|lsquo);", "'"),
-    @("&amp;(quot|ldquo|rdquo);", '"'),
-    @("&amp;trade;", "(tm)"),
-    @("&amp;frasl;", "/"),
-    @("&amp;(quot|#34|#034|#x22);", '"'),
-    @('&amp;(amp|#38|#038|#x26);', "&amp;"),
-    @("&amp;(lt|#60|#060|#x3c);", "<"),
-    @("&amp;(gt|#62|#062|#x3e);", ">"),
-    @('&amp;(copy|#169);', "(c)"),
-    @("&amp;(reg|#174);", "(r)"),
-    @("&amp;nbsp;", " "),
-    @("&amp;(.{2,6});", "")
+        @("&amp;bull;", " * "),
+        @("&amp;lsaquo;", "<"),
+        @("&amp;rsaquo;", ">"),
+        @("&amp;(rsquo|lsquo);", "'"),
+        @("&amp;(quot|ldquo|rdquo);", '"'),
+        @("&amp;trade;", "(tm)"),
+        @("&amp;frasl;", "/"),
+        @("&amp;(quot|#34|#034|#x22);", '"'),
+        @('&amp;(amp|#38|#038|#x26);', "&amp;"),
+        @("&amp;(lt|#60|#060|#x3c);", "<"),
+        @("&amp;(gt|#62|#062|#x3e);", ">"),
+        @('&amp;(copy|#169);', "(c)"),
+        @("&amp;(reg|#174);", "(r)"),
+        @("&amp;nbsp;", " "),
+        @("&amp;(.{2,6});", "")
     ) | foreach-object { $string = $string -replace $_[0], $_[1] }
     write-verbose "replaced entities: `n`n$string`n"
 
+    # * 9:24 AM 9/25/2025 add -UrlDecode support, to unencode url's ; add -PlusLiteral steering + handling logic; $rgxURLDecodeFilter as a encoded url detection filter rgx
+    # $PlusLiteral $UrlDecode $rgxURLDecodeFilter
+    if($UrlDecode -OR ($string -match $rgxURLDecodeFilter)){
+        if($string -match $rgxURLDecodeFilter){$smsg = "matched UrlEncoding chars ($($rgxURLDecodeFilter))," }
+        if($UrlDecode){$smsg = "`n-UrlDecode:"}
+        $smsg += "running UrlDecode" ;
+        write-host -foregroundcolor gray $smsg ; 
+        if($PlusLiteral){
+            write-verbose "-PlusLiteral: using [System.Uri]::UnescapeDataString()" ; 
+            $string = [System.Uri]::UnescapeDataString($string)
+        }else{
+            write-verbose "Default plus as space: using [System.Web.HttpUtility]::UrlDecode()" ; 
+            [Reflection.Assembly]::LoadWithPartialName("System.Web") | Out-Null ;
+            $string = [System.Web.HttpUtility]::UrlDecode($string)
+        } ; 
+    } ; 
     $string | write-output ;     
 }
 
@@ -2336,7 +2458,7 @@ function Get-CharInfo {
     can be piped to the function as parameter $InputObject, e.g as
     "ΧАB",[char]4301,191,0x1F3DE | Get-CharInfo
     or (the same in terms of decimal numbers) as
-    935,1040,66,4301,191,127966 | Get-CharInfo
+    935,1040,67.0.01,191,127966 | Get-CharInfo
 
     On the other side, the $InputObject parameter supplied named
     or positionally must be of the only base type: either a number
@@ -2594,6 +2716,60 @@ public static string Get(char ch) {
 }
 
 #*------^ Get-CharInfo.ps1 ^------
+
+
+#*------v get-randomStringTDO.ps1 v------
+function get-randomStringTDO {
+<#
+    .SYNOPSIS
+    get-randomStringTDO() - Return a random alphanumeric string
+   .NOTES
+    Version     : 1.0.1
+    Author      : Todd Kadrie
+    Website     : http://www.toddomation.com
+    Twitter     : @tostka / http://twitter.com/tostka
+    CreatedDate : 2025-06-13
+    FileName    : get-randomStringTDO.ps1
+    License     : MIT License
+Copyright   : (c) 2025 Todd Kadrie
+    Github      : https://github.com/tostka/verb-text
+    Tags        : Powershell,Text,String,Random
+    REVISIONS   :
+    * 11:13 AM 6/13/2025 init
+    .DESCRIPTION
+    get-randomStringTDO() - Return a random alphanumeric string
+    .PARAMETER length
+    Specifies the string length to be returned
+    .PARAMETER Alpha
+    Alphabetic-only switch    
+    .EXAMPLE
+    PS> get-randomstring -length 25
+
+        LncksueohGvaBtSJ14Tzf2Orl
+
+    Generate a random Alphanumeric string
+    .EXAMPLE
+    PS> get-randomstring -length 25 -alpha
+
+        lqDKNvBpkQCjnuJTgERwUSxYW
+    
+    Generate a random Alphabetic string
+    .LINK
+    https://github.com/tostka/verb-text
+    #>
+    [CMdletBinding()]
+    PARAM (
+        [Parameter(Mandatory = $true,Position = 0,HelpMessage = 'Specifies the string length to be returned')]
+            [int]$length,
+        [Parameter(HelpMessage = 'Alphabetic-only switch')]
+        [switch]$Alpha
+    ) ;
+    $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.ToCharArray();
+    if($Alpha){$chars = $chars | ?{$_ -notmatch '[0-9]'}} ; 
+    ($chars | get-random -Count $length ) -join '' | write-output ; 
+}
+
+#*------^ get-randomStringTDO.ps1 ^------
 
 
 #*------v get-StringHash.ps1 v------
@@ -3380,7 +3556,7 @@ function test-IsUri{
 
 #*======^ END FUNCTIONS ^======
 
-Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,_decode,Convert-CodePointToPSSyntaxTDO,convertFrom-Base64String,convert-HtmlCodeToTextTDO,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-CleanString,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,convert-UnicodeUPlusToCharCode,Get-CharInfo,ReadUnicodeRanges,ReadUnicodeData,out,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
+Export-ModuleMember -Function Get-SetupTextVersionTDO,compare-CodeRevision,convert-CaesarCipher,_encode,_decode,Convert-CodePointToPSSyntaxTDO,convertFrom-Base64String,convert-HtmlCodeToTextTDO,Convert-invertCase,convert-Rot13,convert-Rot47,convertto-AcronymFromCaps,convertTo-Base64String,convertto-Base64StringCommaQuoted,ConvertTo-CamelCase,ConvertTo-CleanString,ConvertTo-L33t,ConvertTo-lowerCamelCase,convertTo-PSHelpExample,convertTo-QuotedList,ConvertTo-SCase,ConvertTo-SNAKE_CASE,convertto-StringCommaQuote,ConvertTo-StringQuoted,convertTo-StringReverse,convertTo-StUdlycaPs,convertTo-TitleCase,convertTo-UnWrappedText,convertTo-WordsReverse,convertTo-WrappedText,convert-UnicodeUPlusToCharCode,Get-CharInfo,ReadUnicodeRanges,ReadUnicodeData,out,get-randomStringTDO,get-StringHash,new-LoremString,Remove-StringDiacritic,Remove-StringLatinCharacters,Test-IsGuid,test-IsNumeric,test-IsRegexPattern,test-IsRegexValid,test-IsUri -Alias *
 
 
 
@@ -3388,8 +3564,8 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # SIG # Begin signature block
 # MIIELgYJKoZIhvcNAQcCoIIEHzCCBBsCAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
 # gjcCAQSgWzBZMDQGCisGAQQBgjcCAR4wJgIDAQAABBAfzDtgWUsITrck0sYpfvNR
-# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUz1lD0XOpwaESHC/+pNGLLWeh
-# SnagggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
+# AgEAAgEAAgEAAgEAAgEAMCEwCQYFKw4DAhoFAAQUuH+R8DWgmZMor0lpXSajW16H
+# OL2gggI4MIICNDCCAaGgAwIBAgIQWsnStFUuSIVNR8uhNSlE6TAJBgUrDgMCHQUA
 # MCwxKjAoBgNVBAMTIVBvd2VyU2hlbGwgTG9jYWwgQ2VydGlmaWNhdGUgUm9vdDAe
 # Fw0xNDEyMjkxNzA3MzNaFw0zOTEyMzEyMzU5NTlaMBUxEzARBgNVBAMTClRvZGRT
 # ZWxmSUkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALqRVt7uNweTkZZ+16QG
@@ -3404,9 +3580,9 @@ Export-ModuleMember -Function compare-CodeRevision,convert-CaesarCipher,_encode,
 # AWAwggFcAgEBMEAwLDEqMCgGA1UEAxMhUG93ZXJTaGVsbCBMb2NhbCBDZXJ0aWZp
 # Y2F0ZSBSb290AhBaydK0VS5IhU1Hy6E1KUTpMAkGBSsOAwIaBQCgeDAYBgorBgEE
 # AYI3AgEMMQowCKACgAChAoAAMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMBwG
-# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBSgOM5J
-# DyRXwHLhf/ARNPv0gKcACDANBgkqhkiG9w0BAQEFAASBgB3EzqLpsuzWIPfSX+EU
-# pl5ephB/qPgLzQrzvC1ndTLZuucLm/DWUGd4uHLwQIMxEq9hn+IegUqrBLrqmqUS
-# VnqFP3CjPofaZKtYOGNEmKzX5nJlBdJQfJxF5BQO3z7Fmfa6zmP6m4C03MNSacRt
-# kda41KijPLp5px92nc9F+aEq
+# CisGAQQBgjcCAQsxDjAMBgorBgEEAYI3AgEVMCMGCSqGSIb3DQEJBDEWBBTIelCT
+# D5ali6G7gjV91pGB3QOKsDANBgkqhkiG9w0BAQEFAASBgI4lXQKn0n6+ckgf5UnQ
+# xvfS8CRK/98+5K/qNWQckwC3T5q7vHvTWd0cBgR9AZoOLIZfyz4rjFu+KsX3BlFw
+# tZmqsHajIk3j0uh2Kg5vAt+VqD3CovtTIT0DoyBUQ22Rt7sWTvsz4S6D522L1CGT
+# IwILPZOF31DsixeywKHJ0gmG
 # SIG # End signature block
