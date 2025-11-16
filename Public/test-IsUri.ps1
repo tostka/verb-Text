@@ -17,6 +17,7 @@ function test-IsUri{
     AddedCredit : Microsoft (edited version of published commands in the module)
     AddedWebsite:	https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
     REVISIONS
+    * 1:36 PM 11/16/2025 add alias:test-IsUrl, -String: add aliases 'url','uri', Added full Param prop to -PermitHttp; added explicit w-o & type to reinforce return points
     * 1:11 PM 6/29/2022 renamed test-uri-> test-IsUri, aliased orig name
     * 2:08 PM 12/6/2021 ren'd UriString param to String, and added orig name as alias. Set CBH Output, and broader example; moving into verb-text, where it better fits.
     * 8:34 AM 11/9/2020 init
@@ -42,20 +43,20 @@ function test-IsUri{
     https://docs.microsoft.com/en-us/powershell/exchange/exchange-online-powershell-v2
     #>
     [CmdletBinding()]
-    [Alias('test-URI')]
+    [Alias('test-URI','test-URL')]
     [OutputType([bool])]
     Param(
-        # Uri to be validated
-        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0)]
-        [Alias('UriString')]
-        [string]$String,
-        [Parameter()][switch]$PermitHttp
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, Position=0,HelpMessage="String to be validated")]
+            [Alias('UriString','url','uri')]
+            [string]$String,
+        [Parameter(HelpMessage="Switch to permit validation of either https or http uri.schemes")]
+            [switch]$PermitHttp
     ) ;
     [Uri]$uri = $String -as [Uri]
     if($PermitHttp){
-      ($uri.AbsoluteUri -ne $null) -and ($uri.Scheme -eq 'https' -OR $uri.Scheme -eq 'http')
+      [boolean](($uri.AbsoluteUri -ne $null) -and ($uri.Scheme -eq 'https' -OR $uri.Scheme -eq 'http')) | write-output ; 
     } else { 
-      $uri.AbsoluteUri -ne $null -and $uri.Scheme -eq 'https' ;
+      [boolean]($uri.AbsoluteUri -ne $null -and $uri.Scheme -eq 'https')  | write-output ; ;
     } ; 
 } 
 #*------^ END Function test-IsUri ^------
